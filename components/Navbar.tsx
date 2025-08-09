@@ -91,7 +91,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="#inicio" onClick={smoothScroll('#inicio')} className="font-extrabold text-2xl md:text-3xl tracking-tight">
           <span className="bg-gradient-to-r from-blue-700 via-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-            EQdev
+            EQdeveloper
           </span>
         </Link>
 
