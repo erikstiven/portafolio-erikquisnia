@@ -1,15 +1,14 @@
-// frontend/services/redesService.ts
-
+// services/redesService.ts
 import api from '@/lib/api';
-import { RedSocialSchema } from '@/types/redSocial';
+import type { RedSocial, RedSocialSchema } from '@/types/redSocial';
 
-export const getRedes = () => api.get('/redes');
+export const getRedes = () => api.get<RedSocial[]>('/redes');
 
 export const createRed = (data: RedSocialSchema) =>
-  api.post('/redes', { ...data, activo: true });
+  api.post<RedSocial>('/redes', { ...data, activo: true });
 
 export const updateRed = (id: number | string, data: RedSocialSchema) =>
-  api.put(`/redes/${id}`, data);
+  api.put<RedSocial>(`/redes/${id}`, data);
 
 export const deleteRed = (id: number | string) =>
-  api.delete(`/redes/${id}`);
+  api.delete<void>(`/redes/${id}`);

@@ -4,6 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 import { HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
+import { FaWhatsapp } from 'react-icons/fa';
+const phone = '0979018689';
+const waPhone = '593' + phone.replace(/^0/, ''); // 593979018689
+const waMsg = encodeURIComponent('Hola, vi tu portafolio y me gustaría conversar contigo.');
+
+
 
 const navLinks = [
   { href: '#inicio', label: 'Inicio' },
@@ -99,15 +105,14 @@ export default function Navbar() {
                 href={link.href}
                 onClick={smoothScroll(link.href)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`group relative font-semibold transition-colors text-[15px] ${
-                  isActive ? 'text-violet-700' : 'text-slate-800 hover:text-violet-700'
-                }`}
+                className={`group relative font-semibold transition-colors text-[15px] ${isActive ? 'text-violet-700' : 'text-slate-800 hover:text-violet-700'
+                  }`}
               >
                 {link.label}
                 {/* subrayado animado */}
                 <span
                   className={`pointer-events-none absolute -bottom-1 left-0 h-[2px] rounded-full
-                              bg-gradient-to-r from-fuchsia-500 to-violet-500 transition-all duration-300
+                              
                               ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}
                 />
               </a>
@@ -116,12 +121,14 @@ export default function Navbar() {
 
           {/* CTA */}
           <a
-            href="#contacto"
-            onClick={smoothScroll('#contacto')}
+            href={`https://wa.me/${waPhone}?text=${waMsg}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="ml-2 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold
                        bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md hover:shadow-lg
                        transition-transform active:scale-95"
           >
+            <FaWhatsapp />
             Contáctame
           </a>
 
@@ -172,11 +179,10 @@ export default function Navbar() {
                   href={link.href}
                   onClick={smoothScroll(link.href)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`block rounded-md px-3 py-3 text-base font-semibold transition ${
-                    isActive
+                  className={`block rounded-md px-3 py-3 text-base font-semibold transition ${isActive
                       ? 'bg-violet-50 text-violet-700'
                       : 'text-slate-800 hover:bg-slate-100'
-                  }`}
+                    }`}
                 >
                   {link.label}
                 </a>

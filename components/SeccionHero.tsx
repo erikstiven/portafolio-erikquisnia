@@ -2,6 +2,10 @@
 import { FaLinkedin, FaGithub } from 'react-icons/fa';
 import HeroParticles from '@/components/HeroParticles';
 
+const phone = '0979018689';
+const waPhone = '593' + phone.replace(/^0/, ''); 
+const waMsg = encodeURIComponent('Hola, vi tu portafolio y me gustaría conversar contigo.');
+
 export default function SeccionHero() {
   return (
     // Full-bleed: ocupa todo el ancho del viewport
@@ -59,7 +63,7 @@ export default function SeccionHero() {
                 </a>
 
                 <a
-                  href="https://github.com/erikquisnia"
+                  href="https://github.com/erikstiven"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 shadow transition"
@@ -69,7 +73,9 @@ export default function SeccionHero() {
                 </a>
 
                 <a
-                  href="#contacto"
+                  href={`https://wa.me/${waPhone}?text=${waMsg}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="ml-2 px-6 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-base font-semibold shadow transition"
                 >
                   Contáctame

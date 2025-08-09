@@ -1,11 +1,8 @@
-export interface SobreMi {
+export type SobreMi = {
   nombre: string;
   rol: string;
-  resumen: string;
-  logros: string[];
-  extra?: string;
-  fotoUrl: string;   
-  cvUrl?: string;
-  ubicacion?: string;
-  tags?: string[];
-}
+  resumen: string;       // párrafo 1
+  extra?: string;        // párrafos extra (opcional)
+  fotoUrl: string;       // ej: "/me.jpg" en /public
+  cvUrl?: string;        // ej: "/cv.pdf" en /public
+};
