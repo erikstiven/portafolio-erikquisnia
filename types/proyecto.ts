@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+// frontend/types/proyecto.ts
+export interface Categoria {
+  id: number
+  nombre: string
+}
+
 export const proyectoSchema = z.object({
   titulo: z.string().min(1, 'El título es obligatorio'),
   descripcion: z.string().min(1, 'La descripción es obligatoria'),

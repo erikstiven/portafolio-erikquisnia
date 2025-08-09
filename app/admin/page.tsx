@@ -1,63 +1,100 @@
 'use client';
 
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { FaShareAlt, FaFolder, FaWrench, FaTags } from 'react-icons/fa';
-// import DashboardChart from '@/components/ui/DashboardChart'; // Si usas gráfico
+import { FaShareAlt, FaFolderOpen, FaWrench, FaTags, FaUserAstronaut } from 'react-icons/fa';
+
+const gradients = [
+  'from-cyan-500 via-blue-500 to-indigo-600',
+  'from-purple-500 via-fuchsia-500 to-pink-500',
+  'from-yellow-400 via-orange-500 to-pink-600',
+  'from-green-400 via-emerald-500 to-teal-500',
+];
 
 export default function AdminDashboard() {
-  const { data, loading } = useDashboardData();
+  const { data } = useDashboardData();
 
   const cards = [
     {
       title: 'Redes Sociales',
       value: data?.redes ?? 0,
-      icon: <FaShareAlt className="text-4xl text-white/80 drop-shadow" />,
+      icon: <FaShareAlt className="text-4xl text-white/90 drop-shadow" />,
     },
     {
       title: 'Proyectos',
       value: data?.proyectos ?? 0,
-      icon: <FaFolder className="text-4xl text-white/80 drop-shadow" />,
+      icon: <FaFolderOpen className="text-4xl text-white/90 drop-shadow" />,
     },
     {
       title: 'Servicios',
       value: data?.servicios ?? 0,
-      icon: <FaWrench className="text-4xl text-white/80 drop-shadow" />,
+      icon: <FaWrench className="text-4xl text-white/90 drop-shadow" />,
     },
     {
       title: 'Categorías',
       value: data?.categorias ?? 0,
-      icon: <FaTags className="text-4xl text-white/80 drop-shadow" />,
+      icon: <FaTags className="text-4xl text-white/90 drop-shadow" />,
     },
   ];
 
   return (
-    <div className="p-4 sm:p-6 min-h-screen bg-white">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">Resumen del sistema</h1>
-      <p className="text-xs sm:text-sm text-gray-500 mb-8">
-        Última actualización: {new Date().toLocaleString()}
-      </p>
+    <div className="relative p-4 sm:p-8 min-h-screen bg-gradient-to-tr from-slate-100 to-white">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto mb-6 mt-2">
+        <div className="flex items-center gap-4 mb-8">
+          <span className="inline-block bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-xl p-4 shadow-xl">
+            <FaUserAstronaut className="text-4xl" />
+          </span>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-800 drop-shadow-lg">
+              Mi Dashboard Profesional
+            </h1>
+            <p className="text-base text-gray-500 mt-1">
+              <span className="font-semibold text-blue-500">¡Bienvenido a tu espacio dinámico!</span> Gestiona tu carrera y logros.
+            </p>
+          </div>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {/* Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {cards.map((card, idx) => (
           <div
             key={idx}
-            className="
-              bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600
-              p-5 sm:p-6 rounded-2xl shadow-xl
-              hover:scale-105 hover:shadow-2xl transition-all duration-300 cursor-pointer
-              flex flex-col gap-2 min-h-[112px] sm:min-h-[128px]
-            "
+            className={`
+              group relative backdrop-blur-xl bg-white/70 shadow-2xl rounded-3xl p-6 overflow-hidden flex flex-col
+              border-2 border-transparent hover:border-blue-400 hover:scale-[1.035] transition-all duration-300
+              min-h-[160px]
+            `}
+            style={{
+              boxShadow: `0 8px 36px -10px rgba(80,100,200,0.13), 0 1.5px 14px 0 rgba(80,100,200,0.12)`,
+            }}
           >
-            <div className="flex justify-between items-center">
-              <h3 className="text-white font-semibold text-base sm:text-lg drop-shadow">{card.title}</h3>
+            {/* Fondo animado */}
+            <div
+              className={`
+                absolute inset-0 -z-10 blur-2xl opacity-50 transition-all duration-300 pointer-events-none
+                group-hover:opacity-80 group-hover:blur-3xl
+                bg-gradient-to-br ${gradients[idx % gradients.length]}
+              `}
+            />
+            {/* Encabezado */}
+            <div className="flex flex-row justify-between items-center">
+              <h3 className="text-gray-900 font-bold text-lg">{card.title}</h3>
               {card.icon}
             </div>
-            <div className="text-3xl sm:text-4xl font-bold text-white drop-shadow mt-2">{card.value}</div>
+            {/* Número grande alineado perfecto */}
+            <div className="flex-1 flex items-end justify-end mt-3">
+              <span className="text-5xl font-black text-gray-900 drop-shadow tracking-tighter leading-none select-none">
+                {card.value}
+              </span>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* <DashboardChart /> */}
+      <p className="mt-10 text-sm text-right text-gray-400 max-w-7xl mx-auto">
+        Última actualización: <span className="font-semibold text-blue-600">{new Date().toLocaleString()}</span>
+      </p>
     </div>
   );
 }

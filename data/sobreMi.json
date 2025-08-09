@@ -1,0 +1,15 @@
+{
+  "nombre": "Erik Quisnia",
+  "rol": "Ingeniero de Software • Full‑Stack",
+  "resumen": "Construyo soluciones reales con Laravel, Next.js y PostgreSQL...",
+  "logros": [
+    "Integración PayPhone y checkout",
+    "Panel admin con JWT, RHF+Zod y Zustand",
+    "UI/UX con Tailwind y shadcn"
+  ],
+  "extra": "Me motiva trabajar en equipo y CI/CD.",
+  "fotoUrl": "/me.jpg",
+  "cvUrl": "/cv-erik-quisnia.pdf",
+  "ubicacion": "Ecuador",
+  "tags": ["Laravel", "Next.js", "TypeScript", "Prisma", "PostgreSQL", "Docker"]
+}

@@ -1,5 +1,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+
+@layer utilities {
+  .bg-purple-pink {
+    @apply bg-gradient-to-r from-purple-500 to-pink-500;
+  }
+}
+
+@keyframes bg-pulse {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(20px, 20px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+.animate-bg-pulse {
+  animation: bg-pulse 20s ease-in-out infinite;
+}
+
 /* Mejoras globales */
 body {
   /* Ya lo pones con Tailwind en el layout, pero si quieres puedes reforzar aquí: */

@@ -19,12 +19,14 @@ import {
 
 const links = [
   { href: '/admin', label: 'Dashboard', icon: <FaTachometerAlt /> },
-  { href: '/admin/redes', label: 'Redes Sociales', icon: <FaShareAlt /> },
   { href: '/admin/proyectos', label: 'Proyectos', icon: <FaProjectDiagram /> },
   { href: '/admin/servicios', label: 'Servicios', icon: <FaServicestack /> },
+  { href: '/admin/redes', label: 'Redes Sociales', icon: <FaShareAlt /> },
   { href: '/admin/categorias', label: 'Categorías', icon: <FaThList /> },
   { href: '/admin/experiencia', label: 'Experiencia', icon: <FaBriefcase /> },
+  // { href: '/admin/config', label: 'Ajustes', icon: <FaCog /> }, // Opcional
 ];
+
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -59,7 +61,10 @@ export default function Sidebar() {
   const sidebarContent = (
     <div className="flex flex-col h-full justify-between">
       <div className="p-6">
-        <h2 className="text-2xl font-bold mb-8 tracking-wide">Admin Panel</h2>
+        <div className="flex items-center gap-2 mb-8">
+          <img src="/logo.png" alt="Logo" className="w-12 h-12" />
+          <span className="text-2xl font-bold">Portafy</span>
+        </div>
         <nav className="flex flex-col gap-1">
           {links.map((link) => {
             const isActive = pathname === link.href;
