@@ -9,12 +9,21 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-import { proyectoSchema, type ProyectoSchema } from '@/types/proyecto';
-import { createProyecto, updateProyecto } from '@/services/proyectoService';
+import {
+  proyectoSchema,
+  type ProyectoSchema,
+  NIVEL_VALUES,
+  type Nivel,
+} from '@/types/proyecto';
+import {
+  createProyectoJson,
+  updateProyectoJson,
+  createProyectoForm,
+  updateProyectoForm,
+} from '@/services/proyectoService';
 
 interface Props {
   initialData?: Partial<ProyectoSchema> & { id?: number };
@@ -24,13 +33,15 @@ interface Props {
 export default function FormProyecto({ initialData, onSuccess }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(initialData?.imagenUrl ?? null);
+  const [portada, setPortada] = useState<File | null>(null);
 
   const {
     register,
     handleSubmit,
     reset,
     setValue,
-    formState: { errors, isSubmitting }
+    watch,
+    formState: { errors, isSubmitting },
   } = useForm<ProyectoSchema>({
     resolver: zodResolver(proyectoSchema),
     defaultValues: {
@@ -42,110 +53,158 @@ export default function FormProyecto({ initialData, onSuccess }: Props) {
       nivel: initialData?.nivel ?? null,
       imagenUrl: initialData?.imagenUrl ?? null,
       demoUrl: initialData?.demoUrl ?? null,
-      githubUrl: initialData?.githubUrl ?? null
-    }
+      githubUrl: initialData?.githubUrl ?? null,
+    },
   });
 
-  const onSubmit = async (data: ProyectoSchema) => {
-    try {
-      if (initialData?.id) {
-        await updateProyecto(initialData.id, data);
-        toast.success('Proyecto actualizado correctamente');
-      } else {
-        await createProyecto(data);
-        toast.success('Proyecto creado correctamente');
-      }
-      reset();
-      setPreview(null);
-      onSuccess();
-    } catch (error) {
-      console.error(error);
-      toast.error('Error al guardar el proyecto');
-    }
-  };
-
+  // Manejar cambio de imagen: guardar File y mostrar preview
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
+    setPortada(file);
     setPreview(url);
-    setValue('imagenUrl', url as any); // o manejar como upload real
+    setValue('imagenUrl', null, { shouldDirty: true }); // eliminar URL si se sube archivo
   };
 
   const removeImage = () => {
+    setPortada(null);
     setPreview(null);
-    setValue('imagenUrl', null);
+    setValue('imagenUrl', null, { shouldDirty: true });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  // Enviar formulario: JSON si no hay archivo, FormData si hay archivo
+  const onSubmit = async (data: ProyectoSchema) => {
+    try {
+      if (initialData?.id) {
+        if (portada) {
+          await updateProyectoForm(initialData.id, data, portada);
+        } else {
+          await updateProyectoJson(initialData.id, data);
+        }
+        toast.success('Proyecto actualizado correctamente');
+      } else {
+        if (portada) {
+          await createProyectoForm(data, portada);
+        } else {
+          await createProyectoJson(data);
+        }
+        toast.success('Proyecto creado correctamente');
+        reset();
+        removeImage();
+      }
+      onSuccess();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Error al guardar proyecto');
+    }
+  };
+
+  const nivelValue = (watch('nivel') as Nivel | null) ?? '';
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {/* Título */}
       <div>
-        <Label>Título</Label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
         <Input {...register('titulo')} />
-        {errors.titulo && <p className="text-red-500 text-sm">{errors.titulo.message}</p>}
+        {errors.titulo && (
+          <p className="text-red-500 text-sm">{errors.titulo.message}</p>
+        )}
       </div>
 
       {/* Descripción */}
       <div>
-        <Label>Descripción</Label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
         <Textarea {...register('descripcion')} />
-        {errors.descripcion && <p className="text-red-500 text-sm">{errors.descripcion.message}</p>}
+        {errors.descripcion && (
+          <p className="text-red-500 text-sm">{errors.descripcion.message}</p>
+        )}
       </div>
 
       {/* Tecnologías */}
       <div>
-        <Label>Tecnologías</Label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Tecnologías</label>
         <Input {...register('tecnologias')} />
-        {errors.tecnologias && <p className="text-red-500 text-sm">{errors.tecnologias.message}</p>}
+        {errors.tecnologias && (
+          <p className="text-red-500 text-sm">{errors.tecnologias.message}</p>
+        )}
       </div>
 
-      {/* Categoría */}
-      <div>
-        <Label>Categoría</Label>
-        <Select
-          value={String(initialData?.categoriaId ?? '')}
-          onValueChange={(value) => setValue('categoriaId', value ? Number(value) : null)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Selecciona una categoría" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">Web</SelectItem>
-            <SelectItem value="2">Móvil</SelectItem>
-          </SelectContent>
-        </Select>
-        {errors.categoriaId && <p className="text-red-500 text-sm">{errors.categoriaId.message}</p>}
-      </div>
+      // Categoría
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+  <Select
+    value={watch('categoriaId') == null ? 'none' : String(watch('categoriaId'))}
+    onValueChange={(val) => {
+      // Si selecciona 'none' → null; de lo contrario, convierte a número
+      const parsed = val === 'none' ? null : Number(val);
+      setValue('categoriaId', Number.isNaN(parsed) ? null : parsed, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }}
+  >
+    <SelectTrigger className="w-full">
+      <SelectValue placeholder="Selecciona una categoría" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="none">— Sin categoría —</SelectItem>
+      {/* Sustituye las opciones estáticas por un map si vienen de la API */}
+      <SelectItem value="1">Web</SelectItem>
+      <SelectItem value="2">Móvil</SelectItem>
+    </SelectContent>
+  </Select>
+  {errors.categoriaId && (
+    <p className="text-red-500 text-sm">{errors.categoriaId.message as any}</p>
+  )}
+</div>
 
-      {/* Nivel */}
-      <div>
-        <Label>Nivel</Label>
-        <Select
-          value={field.value ?? ''}
-          onValueChange={(value) => field.onChange(value || null)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Selecciona un nivel" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Frontend">Frontend</SelectItem>
-            <SelectItem value="Backend">Backend</SelectItem>
-            <SelectItem value="Fullstack">Fullstack</SelectItem>
-          </SelectContent>
-        </Select>
 
-        {errors.nivel && <p className="text-red-500 text-sm">{errors.nivel.message}</p>}
-      </div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Nivel</label>
+  <Select
+    value={watch('nivel') ?? 'none'}
+    onValueChange={(val) => {
+      // 'none' → null; de lo contrario, el valor seleccionado ('Frontend', etc.)
+      const nivel = val === 'none' ? null : (val as Nivel);
+      setValue('nivel', nivel, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }}
+  >
+    <SelectTrigger className="w-full">
+      <SelectValue placeholder="Selecciona nivel (opcional)" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="none">— Sin nivel —</SelectItem>
+      {NIVEL_VALUES.map((n) => (
+        <SelectItem key={n} value={n}>
+          {n}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+  {errors.nivel && (
+    <p className="text-red-500 text-sm">{errors.nivel.message as any}</p>
+  )}
+</div>
 
       {/* Imagen */}
       <div>
-        <Label>Imagen</Label>
+      <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
         {preview ? (
           <div className="relative w-32 h-32">
+            {/* Si no tienes componente Image en tu proyecto, usa <img> normal */}
             <Image src={preview} alt="Preview" fill className="object-cover rounded" />
-            <Button type="button" onClick={removeImage} variant="destructive" size="sm" className="absolute top-1 right-1">
+            <Button
+              type="button"
+              onClick={removeImage}
+              variant="destructive"
+              size="sm"
+              className="absolute top-1 right-1"
+            >
               X
             </Button>
           </div>
@@ -165,16 +224,20 @@ export default function FormProyecto({ initialData, onSuccess }: Props) {
 
       {/* Demo URL */}
       <div>
-        <Label>Demo URL</Label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Demo URL</label>
         <Input {...register('demoUrl')} />
-        {errors.demoUrl && <p className="text-red-500 text-sm">{errors.demoUrl.message}</p>}
+        {errors.demoUrl && (
+          <p className="text-red-500 text-sm">{errors.demoUrl.message}</p>
+        )}
       </div>
 
       {/* GitHub URL */}
       <div>
-        <Label>GitHub URL</Label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">GitHub URL</label>
         <Input {...register('githubUrl')} />
-        {errors.githubUrl && <p className="text-red-500 text-sm">{errors.githubUrl.message}</p>}
+        {errors.githubUrl && (
+          <p className="text-red-500 text-sm">{errors.githubUrl.message}</p>
+        )}
       </div>
 
       {/* Botón */}
