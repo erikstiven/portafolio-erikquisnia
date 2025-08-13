@@ -17,6 +17,7 @@ export const proyectoSchema = z.object({
 });
 
 export type ProyectoSchema = z.infer<typeof proyectoSchema>;
+
 export interface Proyecto extends ProyectoSchema {
   id: number;
   activo: boolean;

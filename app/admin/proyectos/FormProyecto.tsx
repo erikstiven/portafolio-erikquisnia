@@ -1,48 +1,24 @@
-// app/admin/proyectos/FormProyecto.tsx
 'use client';
 
-import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import Image from 'next/image';
-import { toast } from 'sonner';
-
+import { proyectoSchema, ProyectoSchema, NIVEL_VALUES, Nivel } from '@/types/proyecto';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import Image from 'next/image';
+import { useState, useRef } from 'react';
 
-import {
-  proyectoSchema,
-  type ProyectoSchema,
-  NIVEL_VALUES,
-  type Nivel,
-} from '@/types/proyecto';
-import {
-  createProyectoJson,
-  updateProyectoJson,
-  createProyectoForm,
-  updateProyectoForm,
-} from '@/services/proyectoService';
-
-interface Props {
+interface FormProyectoProps {
   initialData?: Partial<ProyectoSchema> & { id?: number };
   onSuccess: () => void;
 }
 
-export default function FormProyecto({ initialData, onSuccess }: Props) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(initialData?.imagenUrl ?? null);
-  const [portada, setPortada] = useState<File | null>(null);
+export default function FormProyecto({ initialData, onSuccess }: FormProyectoProps) {
+  const [preview, setPreview] = useState<string | null>(initialData?.imagenUrl || null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm<ProyectoSchema>({
+  const form = useForm<ProyectoSchema>({
     resolver: zodResolver(proyectoSchema),
     defaultValues: {
       titulo: initialData?.titulo ?? '',
@@ -51,198 +27,131 @@ export default function FormProyecto({ initialData, onSuccess }: Props) {
       categoriaId: initialData?.categoriaId ?? null,
       destacado: initialData?.destacado ?? false,
       nivel: initialData?.nivel ?? null,
-      imagenUrl: initialData?.imagenUrl ?? null,
-      demoUrl: initialData?.demoUrl ?? null,
-      githubUrl: initialData?.githubUrl ?? null,
+      imagenUrl: initialData?.imagenUrl ?? '',
+      demoUrl: initialData?.demoUrl ?? '',
+      githubUrl: initialData?.githubUrl ?? '',
     },
   });
 
-  // Manejar cambio de imagen: guardar File y mostrar preview
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = form;
+
+  const categoriaValue = watch('categoriaId') == null ? '' : String(watch('categoriaId'));
+  const nivelValue: Nivel | '' = (watch('nivel') as Nivel | null) ?? '';
+
+  const onSubmit = (data: ProyectoSchema) => {
+    // Aquí iría tu lógica para guardar el proyecto
+    onSuccess();
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setPortada(file);
-    setPreview(url);
-    setValue('imagenUrl', null, { shouldDirty: true }); // eliminar URL si se sube archivo
-  };
-
-  const removeImage = () => {
-    setPortada(null);
-    setPreview(null);
-    setValue('imagenUrl', null, { shouldDirty: true });
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  // Enviar formulario: JSON si no hay archivo, FormData si hay archivo
-  const onSubmit = async (data: ProyectoSchema) => {
-    try {
-      if (initialData?.id) {
-        if (portada) {
-          await updateProyectoForm(initialData.id, data, portada);
-        } else {
-          await updateProyectoJson(initialData.id, data);
-        }
-        toast.success('Proyecto actualizado correctamente');
-      } else {
-        if (portada) {
-          await createProyectoForm(data, portada);
-        } else {
-          await createProyectoJson(data);
-        }
-        toast.success('Proyecto creado correctamente');
-        reset();
-        removeImage();
-      }
-      onSuccess();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Error al guardar proyecto');
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+      setValue('imagenUrl', '', { shouldDirty: true, shouldValidate: true });
     }
   };
 
-  const nivelValue = (watch('nivel') as Nivel | null) ?? '';
+  const removeImage = () => {
+    setPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    setValue('imagenUrl', '', { shouldDirty: true, shouldValidate: true });
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Título */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
+        <label>Título</label>
         <Input {...register('titulo')} />
-        {errors.titulo && (
-          <p className="text-red-500 text-sm">{errors.titulo.message}</p>
-        )}
+        {errors.titulo && <p className="text-red-500">{errors.titulo.message}</p>}
       </div>
 
       {/* Descripción */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-        <Textarea {...register('descripcion')} />
-        {errors.descripcion && (
-          <p className="text-red-500 text-sm">{errors.descripcion.message}</p>
-        )}
+        <label>Descripción</label>
+        <Input {...register('descripcion')} />
+        {errors.descripcion && <p className="text-red-500">{errors.descripcion.message}</p>}
       </div>
 
       {/* Tecnologías */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Tecnologías</label>
+        <label>Tecnologías</label>
         <Input {...register('tecnologias')} />
-        {errors.tecnologias && (
-          <p className="text-red-500 text-sm">{errors.tecnologias.message}</p>
-        )}
+        {errors.tecnologias && <p className="text-red-500">{errors.tecnologias.message}</p>}
       </div>
-      {/* Categoría */}
-      <Select
-        value={watch('categoriaId') == null ? 'none' : String(watch('categoriaId'))}
-        onValueChange={(val) => {
-          // 'none' => null, cualquier otro => Number
-          const parsed = val === 'none' ? null : Number(val);
-          setValue('categoriaId', Number.isNaN(parsed) ? null : parsed, {
-            shouldDirty: true,
-            shouldValidate: true,
-          });
-        }}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Selecciona una categoría" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="none">— Sin categoría —</SelectItem>
-          {/* Opciones dinámicas o estáticas */}
-          <SelectItem value="1">Web</SelectItem>
-          <SelectItem value="2">Móvil</SelectItem>
-        </SelectContent>
-      </Select>
-      {errors.categoriaId && (
-        <p className="text-red-500 text-sm">
-          {errors.categoriaId.message as any}
-        </p>
-      )}
 
+      {/* Categoría */}
+      <div>
+        <label>Categoría</label>
+        <Select
+          value={categoriaValue}
+          onValueChange={(val) => {
+            const parsed = val === '' ? null : Number(val);
+            setValue('categoriaId', parsed, { shouldDirty: true, shouldValidate: true });
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecciona una categoría" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Ninguna</SelectItem>
+            {/* Aquí deberías mapear tus categorías reales */}
+            <SelectItem value="1">Categoría 1</SelectItem>
+            <SelectItem value="2">Categoría 2</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Nivel */}
-      <Select
-        value={watch('nivel') ?? 'none'}
-        onValueChange={(val) => {
-          // 'none' => null; si es otro, castearlo a Nivel
-          const nivel = val === 'none' ? null : (val as Nivel);
-          setValue('nivel', nivel, {
-            shouldDirty: true,
-            shouldValidate: true,
-          });
-        }}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Selecciona nivel (opcional)" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="none">— Sin nivel —</SelectItem>
-          {NIVEL_VALUES.map((n) => (
-            <SelectItem key={n} value={n}>
-              {n}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {errors.nivel && (
-        <p className="text-red-500 text-sm">
-          {errors.nivel.message as any}
-        </p>
-      )}
-
+      <div>
+        <label>Nivel</label>
+        <Select
+          value={nivelValue || ''}
+          onValueChange={(val) => {
+            setValue('nivel', (val === '' ? null : val as Nivel), { shouldDirty: true, shouldValidate: true });
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecciona un nivel" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Ninguno</SelectItem>
+            {NIVEL_VALUES.map((nivel) => (
+              <SelectItem key={nivel} value={nivel}>{nivel}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Imagen */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
+        <label>Imagen</label>
         {preview ? (
           <div className="relative w-32 h-32">
-            {/* Si no tienes componente Image en tu proyecto, usa <img> normal */}
-            <Image src={preview} alt="Preview" fill className="object-cover rounded" />
-            <Button
-              type="button"
-              onClick={removeImage}
-              variant="destructive"
-              size="sm"
-              className="absolute top-1 right-1"
-            >
-              X
+            <Image src={preview} alt="Vista previa" fill className="object-cover rounded" />
+            <Button type="button" variant="destructive" onClick={removeImage} className="mt-2">
+              Eliminar
             </Button>
           </div>
         ) : (
-          <Button type="button" onClick={() => fileInputRef.current?.click()}>
-            Subir imagen
-          </Button>
+          <Input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageChange} />
         )}
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          className="hidden"
-          onChange={handleImageChange}
-        />
       </div>
 
-      {/* Demo URL */}
+      {/* Enlaces */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Demo URL</label>
+        <label>Demo URL</label>
         <Input {...register('demoUrl')} />
-        {errors.demoUrl && (
-          <p className="text-red-500 text-sm">{errors.demoUrl.message}</p>
-        )}
+        {errors.demoUrl && <p className="text-red-500">{errors.demoUrl.message}</p>}
       </div>
-
-      {/* GitHub URL */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">GitHub URL</label>
+        <label>GitHub URL</label>
         <Input {...register('githubUrl')} />
-        {errors.githubUrl && (
-          <p className="text-red-500 text-sm">{errors.githubUrl.message}</p>
-        )}
+        {errors.githubUrl && <p className="text-red-500">{errors.githubUrl.message}</p>}
       </div>
 
       {/* Botón */}
-      <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Guardando...' : initialData?.id ? 'Actualizar' : 'Guardar'}
-      </Button>
+      <Button type="submit">Guardar</Button>
     </form>
   );
 }
