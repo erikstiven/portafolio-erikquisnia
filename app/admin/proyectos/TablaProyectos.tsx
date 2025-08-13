@@ -1,13 +1,12 @@
-// app/admin/proyectos/TablaProyectos.tsx
 'use client';
 
 import TablaCrud from '@/components/ui/TablaCrud';
-import { columnasProyecto } from './columns';
 import type { Proyecto } from '@/types/proyecto';
+import { columnasProyecto } from './columns';
 
 interface Props {
   proyectos: Proyecto[];
-  loading?: boolean;                    // ← nuevo
+  loading?: boolean;
   onEdit: (proyecto: Proyecto) => void;
   onDelete: (id: number) => void;
 }
@@ -17,10 +16,10 @@ export default function TablaProyectos({ proyectos, loading = false, onEdit, onD
     <TablaCrud
       data={proyectos}
       columns={columnasProyecto}
-      getId={(p) => p.id}
-      loading={loading}                 // ← reenvía
       onEdit={onEdit}
       onDelete={onDelete}
+      getId={(proyecto) => proyecto.id}
+      loading={loading}
     />
   );
 }

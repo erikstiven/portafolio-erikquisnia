@@ -1,49 +1,59 @@
-import api from '@/lib/api';
+import axios from 'axios';
 import type { Proyecto, ProyectoSchema } from '@/types/proyecto';
 
-export type ApiPage<T> = { items:T[]; page:number; pageSize:number; total:number; totalPages:number; };
+const API_BASE = '/api/proyectos';
 
-export async function getProyectos(params?: {page?:number; pageSize?:number; includeInactive?:boolean}) {
-  const { data } = await api.get<ApiPage<Proyecto>>('/proyectos',{ params });
-  return data.items;
-}
-
-export async function getProyectosPage(params?: {page?:number; pageSize?:number; includeInactive?:boolean}) {
-  const { data } = await api.get<ApiPage<Proyecto>>('/proyectos',{ params });
-  return data;
+// Obtiene todos los proyectos
+export async function getProyectos(): Promise<Proyecto[]> {
+  const res = await axios.get<{ items: Proyecto[] }>(API_BASE);
+  return res.data.items;
 }
 
-export async function getProyectosCount() {
-  const { data } = await api.get<ApiPage<Proyecto>>('/proyectos',{ params:{ page:1, pageSize:1 }});
-  return data.total ?? 0;
+// Crea proyecto con JSON (sin imagen)
+export async function createProyectoJson(data: ProyectoSchema): Promise<Proyecto> {
+  const res = await axios.post<Proyecto>(API_BASE, data);
+  return res.data;
 }
 
-// crear/actualizar con JSON
-export async function createProyectoJson(payload: ProyectoSchema) {
-  const { data } = await api.post<Proyecto>('/proyectos', payload);
-  return data;
-}
-export async function updateProyectoJson(id: number|string, payload: ProyectoSchema) {
-  const { data } = await api.put<Proyecto>(`/proyectos/${id}`, payload);
-  return data;
-}
-
-// crear/actualizar con FormData (cuando hay archivo)
-export async function createProyectoForm(payload: ProyectoSchema, portada?: File) {
-  const form = new FormData();
-  Object.entries(payload).forEach(([k,v]) => { if(v!==null && v!==undefined) form.append(k,String(v)); });
-  if (portada) form.append('portada', portada);
-  const { data } = await api.post<Proyecto>('/proyectos', form, { headers:{'Content-Type':'multipart/form-data'} });
-  return data;
-}
-export async function updateProyectoForm(id: number|string, payload: ProyectoSchema, portada?: File) {
-  const form = new FormData();
-  Object.entries(payload).forEach(([k,v]) => { if(v!==null && v!==undefined) form.append(k,String(v)); });
-  if (portada) form.append('portada', portada);
-  const { data } = await api.put<Proyecto>(`/proyectos/${id}`, form, { headers:{'Content-Type':'multipart/form-data'} });
-  return data;
+// Crea proyecto con FormData (con imagen)
+export async function createProyectoForm(data: ProyectoSchema, file: File): Promise<Proyecto> {
+  const formData = new FormData();
+  formData.append('titulo', data.titulo);
+  formData.append('descripcion', data.descripcion);
+  formData.append('tecnologias', data.tecnologias);
+  formData.append('categoriaId', data.categoriaId?.toString() || '');
+  formData.append('destacado', data.destacado ? 'true' : 'false');
+  formData.append('nivel', data.nivel || '');
+  formData.append('demoUrl', data.demoUrl || '');
+  formData.append('githubUrl', data.githubUrl || '');
+  formData.append('imagen', file);
+  const res = await axios.post<Proyecto>(`${API_BASE}/form`, formData);
+  return res.data;
 }
 
-export async function deleteProyecto(id: number|string) {
-  await api.delete(`/proyectos/${id}`);
+// Actualiza proyecto con JSON (sin imagen)
+export async function updateProyectoJson(id: number, data: ProyectoSchema): Promise<Proyecto> {
+  const res = await axios.put<Proyecto>(`${API_BASE}/${id}`, data);
+  return res.data;
+}
+
+// Actualiza proyecto con FormData (con imagen)
+export async function updateProyectoForm(id: number, data: ProyectoSchema, file: File): Promise<Proyecto> {
+  const formData = new FormData();
+  formData.append('titulo', data.titulo);
+  formData.append('descripcion', data.descripcion);
+  formData.append('tecnologias', data.tecnologias);
+  formData.append('categoriaId', data.categoriaId?.toString() || '');
+  formData.append('destacado', data.destacado ? 'true' : 'false');
+  formData.append('nivel', data.nivel || '');
+  formData.append('demoUrl', data.demoUrl || '');
+  formData.append('githubUrl', data.githubUrl || '');
+  formData.append('imagen', file);
+  const res = await axios.put<Proyecto>(`${API_BASE}/form/${id}`, formData);
+  return res.data;
+}
+
+// Elimina un proyecto
+export async function deleteProyecto(id: number): Promise<void> {
+  await axios.delete(`${API_BASE}/${id}`);
 }
