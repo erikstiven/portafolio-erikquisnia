@@ -136,61 +136,51 @@ export default function FormProyecto({ initialData, onSuccess }: Props) {
       </div>
 
       {/* Categoría */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-        <Select
-          value={watch('categoriaId') == null ? '' : String(watch('categoriaId'))}
-          onValueChange={(val) => {
-            const parsed = val === '' ? null : Number(val);
-            setValue('categoriaId', Number.isNaN(parsed) ? null : parsed, {
-              shouldDirty: true,
-              shouldValidate: true,
-            });
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecciona una categoría" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">— Sin categoría —</SelectItem>
-            {/* TODO: Reemplaza estas opciones por un map de categorías reales si vienen de la API */}
-            <SelectItem value="1">Web</SelectItem>
-            <SelectItem value="2">Móvil</SelectItem>
-          </SelectContent>
-        </Select>
-        {errors.categoriaId && (
-          <p className="text-red-500 text-sm">{errors.categoriaId.message as any}</p>
-        )}
-      </div>
+      <Select
+        value={watch('categoriaId') == null ? 'none' : String(watch('categoriaId'))}
+        onValueChange={(val) => {
+          const parsed = val === 'none' ? null : Number(val);
+          setValue('categoriaId', Number.isNaN(parsed) ? null : parsed, {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+        }}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Selecciona una categoría" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">— Sin categoría —</SelectItem>
+          <SelectItem value="1">Web</SelectItem>
+          <SelectItem value="2">Móvil</SelectItem>
+        </SelectContent>
+      </Select>
+
 
       {/* Nivel */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Nivel</label>
-        <Select
-          value={nivelValue}
-          onValueChange={(val) => {
-            setValue('nivel', val ? (val as Nivel) : null, {
-              shouldDirty: true,
-              shouldValidate: true,
-            });
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecciona nivel (opcional)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">— Sin nivel —</SelectItem>
-            {NIVEL_VALUES.map((n) => (
-              <SelectItem key={n} value={n}>
-                {n}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.nivel && (
-          <p className="text-red-500 text-sm">{errors.nivel.message as any}</p>
-        )}
-      </div>
+      <Select
+        value={watch('nivel') ?? 'none'}
+        onValueChange={(val) => {
+          setValue('nivel', val === 'none' ? null : (val as Nivel), {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+        }}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Selecciona nivel (opcional)" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">— Sin nivel —</SelectItem>
+          {NIVEL_VALUES.map((n) => (
+            <SelectItem key={n} value={n}>
+              {n}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+
 
       {/* Imagen */}
       <div>
