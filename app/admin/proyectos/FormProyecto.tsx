@@ -130,70 +130,69 @@ export default function FormProyecto({ initialData, onSuccess }: Props) {
           <p className="text-red-500 text-sm">{errors.tecnologias.message}</p>
         )}
       </div>
-
-      // Categoría
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-  <Select
-    value={watch('categoriaId') == null ? 'none' : String(watch('categoriaId'))}
-    onValueChange={(val) => {
-      // Si selecciona 'none' → null; de lo contrario, convierte a número
-      const parsed = val === 'none' ? null : Number(val);
-      setValue('categoriaId', Number.isNaN(parsed) ? null : parsed, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    }}
-  >
-    <SelectTrigger className="w-full">
-      <SelectValue placeholder="Selecciona una categoría" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="none">— Sin categoría —</SelectItem>
-      {/* Sustituye las opciones estáticas por un map si vienen de la API */}
-      <SelectItem value="1">Web</SelectItem>
-      <SelectItem value="2">Móvil</SelectItem>
-    </SelectContent>
-  </Select>
-  {errors.categoriaId && (
-    <p className="text-red-500 text-sm">{errors.categoriaId.message as any}</p>
-  )}
-</div>
+      {/* Categoría */}
+      <Select
+        value={watch('categoriaId') == null ? 'none' : String(watch('categoriaId'))}
+        onValueChange={(val) => {
+          // 'none' => null, cualquier otro => Number
+          const parsed = val === 'none' ? null : Number(val);
+          setValue('categoriaId', Number.isNaN(parsed) ? null : parsed, {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+        }}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Selecciona una categoría" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">— Sin categoría —</SelectItem>
+          {/* Opciones dinámicas o estáticas */}
+          <SelectItem value="1">Web</SelectItem>
+          <SelectItem value="2">Móvil</SelectItem>
+        </SelectContent>
+      </Select>
+      {errors.categoriaId && (
+        <p className="text-red-500 text-sm">
+          {errors.categoriaId.message as any}
+        </p>
+      )}
 
 
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">Nivel</label>
-  <Select
-    value={watch('nivel') ?? 'none'}
-    onValueChange={(val) => {
-      // 'none' → null; de lo contrario, el valor seleccionado ('Frontend', etc.)
-      const nivel = val === 'none' ? null : (val as Nivel);
-      setValue('nivel', nivel, {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    }}
-  >
-    <SelectTrigger className="w-full">
-      <SelectValue placeholder="Selecciona nivel (opcional)" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="none">— Sin nivel —</SelectItem>
-      {NIVEL_VALUES.map((n) => (
-        <SelectItem key={n} value={n}>
-          {n}
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-  {errors.nivel && (
-    <p className="text-red-500 text-sm">{errors.nivel.message as any}</p>
-  )}
-</div>
+      {/* Nivel */}
+      <Select
+        value={watch('nivel') ?? 'none'}
+        onValueChange={(val) => {
+          // 'none' => null; si es otro, castearlo a Nivel
+          const nivel = val === 'none' ? null : (val as Nivel);
+          setValue('nivel', nivel, {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+        }}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Selecciona nivel (opcional)" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">— Sin nivel —</SelectItem>
+          {NIVEL_VALUES.map((n) => (
+            <SelectItem key={n} value={n}>
+              {n}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {errors.nivel && (
+        <p className="text-red-500 text-sm">
+          {errors.nivel.message as any}
+        </p>
+      )}
+
 
       {/* Imagen */}
       <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
         {preview ? (
           <div className="relative w-32 h-32">
             {/* Si no tienes componente Image en tu proyecto, usa <img> normal */}
