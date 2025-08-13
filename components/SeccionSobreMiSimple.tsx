@@ -8,7 +8,7 @@ export default function SeccionSobreMiSimple({
   const foto = fotoUrl?.trim() ? fotoUrl : "/avatar.png";
 
   return (
-    <section id="sobremi" className="py-12 md:py-16">
+    <section id="sobremi" className="pt-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <h2 className="text-4xl font-bold mb-2 text-left md:text-left">
           Sobre <span className="bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Mí</span>

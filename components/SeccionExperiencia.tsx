@@ -29,7 +29,7 @@ function mostrarRango(
 
 export default function SeccionExperiencia({ experiencias }: Props) {
   return (
-    <section id="experiencia" className="py-12">
+    <section id="experiencia" className="pt-10 md:pt-14 scroll-mt-28 border-t border-slate-200">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <h2 className="text-4xl font-bold mb-10">Experiencia Profesional</h2>
         <div className="relative flex flex-col gap-12">

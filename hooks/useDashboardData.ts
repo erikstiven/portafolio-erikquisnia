@@ -1,9 +1,16 @@
-'use client'; // Este archivo se ejecuta solo del lado del cliente (usa useEffect, window, etc.)
+'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/api'         ; // Importamos la instancia de Axios con configuración baseURL y token
+import api from '@/lib/api';
 
-// Tipo de datos que representa el resumen del dashboard
+type ApiPage<T> = {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
 interface DashboardData {
   redes: number;
   proyectos: number;
@@ -11,45 +18,42 @@ interface DashboardData {
   categorias: number;
 }
 
-// Hook personalizado que carga los datos del dashboard
 export const useDashboardData = () => {
-  // Estado para guardar los datos ya contados
   const [data, setData] = useState<DashboardData | null>(null);
-
-  // Estado para indicar si todavía se está cargando
   const [loading, setLoading] = useState(true);
 
-  // Efecto que se ejecuta una vez al montar el componente
   useEffect(() => {
-    // Función asincrónica que llama a la API
-    const fetchDashboardData = async () => {
+    (async () => {
       try {
-        // Hacemos todas las peticiones en paralelo
+        // pedimos solo 1 elemento para obtener el "total" sin traer toda la lista
+        const params = { page: 1, pageSize: 1 };
+
         const [r, p, s, c] = await Promise.all([
-          api.get<any[]>('/redes'),       // GET /redes
-          api.get<any[]>('/proyectos'),   // GET /proyectos
-          api.get<any[]>('/servicios'),   // GET /servicios
-          api.get<any[]>('/categorias'),  // GET /categorias
+          api.get<ApiPage<any>>('/redes', { params }),
+          api.get<ApiPage<any>>('/proyectos', { params }),
+          api.get<ApiPage<any>>('/servicios', { params }),
+          api.get<ApiPage<any>>('/categorias', { params }),
         ]);
 
-        // Guardamos el conteo de cada entidad
+        // fallback por si algún endpoint aún no devuelve total
+        const count = (resp: any) =>
+          resp.data?.total ??
+          (Array.isArray(resp.data) ? resp.data.length : resp.data?.items?.length ?? 0);
+
         setData({
-          redes: r.data.length,
-          proyectos: p.data.length,
-          servicios: s.data.length,
-          categorias: c.data.length,
+          redes: count(r),
+          proyectos: count(p),
+          servicios: count(s),
+          categorias: count(c),
         });
-      } catch (error) {
-        console.error('Error al cargar el dashboard:', error);
-        setData(null); // En caso de error, limpiamos los datos
+      } catch (e) {
+        console.error('Error al cargar el dashboard:', e);
+        setData(null);
       } finally {
-        setLoading(false); // Siempre desactivamos loading
+        setLoading(false);
       }
-    };
+    })();
+  }, []);
 
-    fetchDashboardData(); // Ejecutamos al montar
-  }, []); // Solo una vez
-
-  // Retornamos el estado actual del hook
   return { data, loading };
 };

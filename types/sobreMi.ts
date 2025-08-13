@@ -1,8 +1,13 @@
-export type SobreMi = {
-  nombre: string;
-  rol: string;
-  resumen: string;       // párrafo 1
-  extra?: string;        // párrafos extra (opcional)
-  fotoUrl: string;       // ej: "/me.jpg" en /public
-  cvUrl?: string;        // ej: "/cv.pdf" en /public
-};
+import { z } from 'zod';
+
+export const sobreMiSchema = z.object({
+  id: z.number().optional(),
+  descripcion: z.string().min(1, 'La descripción es obligatoria'),
+});
+
+export type SobreMiSchema = z.infer<typeof sobreMiSchema>;
+
+export interface SobreMi extends SobreMiSchema {
+  id: number;
+  activo: boolean;
+}

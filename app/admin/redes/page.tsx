@@ -20,8 +20,11 @@ export default function PageRedes() {
   const fetchRedes = async () => {
     setLoading(true);
     try {
-      const res = await getRedes();
-      setRedes(res.data as RedSocial[]);
+      const items = await getRedes();   // <- ya es RedSocial[]
+      setRedes(items);
+
+
+
     } catch {
       toast.error('Error al obtener redes');
     } finally {
@@ -68,10 +71,8 @@ export default function PageRedes() {
       ) : (
         <TablaRedes
           redes={redes}
-          onEdit={(red) => {
-            setRedToEdit(red);
-            setOpen(true);
-          }}
+          loading={loading}      // ← ya controla skeletons
+          onEdit={(red) => { setRedToEdit(red); setOpen(true); }}
           onDelete={handleDelete}
         />
       )}

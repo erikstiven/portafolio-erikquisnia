@@ -1,3 +1,4 @@
+// components/SeccionProyectos.tsx
 'use client';
 
 import { useMemo, useState, useEffect, type ReactNode } from 'react';
@@ -5,7 +6,6 @@ import ProjectCard from './ProjectCard';
 import type { Proyecto, Categoria } from '@/types/proyecto';
 import CarouselGrid from './CarouselGrid';
 
-// ── Hook: detectar móvil (<640px)
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -19,25 +19,31 @@ function useIsMobile() {
 }
 
 interface Props {
-  proyectos: Proyecto[];
-  categorias: Categoria[];
+  proyectos: Proyecto[] | { items?: Proyecto[] } | unknown; // puede venir paginado
+  categorias: Categoria[] | unknown;
 }
 
 export default function SeccionProyectos({ proyectos, categorias }: Props) {
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | null>(null);
-  const [tocado, setTocado] = useState(false); // <- para no pisar la selección del usuario
   const isMobile = useIsMobile();
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | null>(null);
+  const [tocado, setTocado] = useState(false);
 
-  // Al cargar datos por primera vez, setear ⭐ Destacados si existen
+  // 🔒 Normaliza entradas a arrays seguros
+  const proyectosArr: Proyecto[] = Array.isArray(proyectos)
+    ? proyectos
+    : (proyectos as any)?.items && Array.isArray((proyectos as any).items)
+    ? (proyectos as any).items
+    : [];
+
+  const categoriasArr: Categoria[] = Array.isArray(categorias) ? categorias : [];
+
+  // Al cargar, seleccionar ⭐ si hay destacados
   useEffect(() => {
-    if (!tocado && proyectos.length > 0) {
-      if (proyectos.some(p => p.destacado)) {
-        setCategoriaSeleccionada(-1);
-      } else {
-        setCategoriaSeleccionada(null);
-      }
+    if (!tocado && proyectosArr.length > 0) {
+      if (proyectosArr.some((p) => p.destacado)) setCategoriaSeleccionada(-1);
+      else setCategoriaSeleccionada(null);
     }
-  }, [proyectos, tocado]);
+  }, [proyectosArr, tocado]);
 
   const select = (val: number | null) => {
     setTocado(true);
@@ -47,35 +53,35 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
   // contadores por categoría
   const counts = useMemo(() => {
     const acc: Record<number, number> = {};
-    for (const c of categorias) acc[c.id] = 0;
-    for (const p of proyectos) {
+    for (const c of categoriasArr) acc[c.id] = 0;
+    for (const p of proyectosArr) {
       const key = Number((p as any).categoriaId);
       if (!Number.isNaN(key)) acc[key] = (acc[key] ?? 0) + 1;
     }
     return acc;
-  }, [proyectos, categorias]);
+  }, [proyectosArr, categoriasArr]);
 
   const destacadosCount = useMemo(
-    () => proyectos.filter(p => p.destacado).length,
-    [proyectos]
+    () => proyectosArr.filter((p) => p.destacado).length,
+    [proyectosArr]
   );
 
   const proyectosFiltrados = useMemo(() => {
     if (categoriaSeleccionada === -1) {
-      const dest = proyectos.filter(p => p.destacado);
-      return dest.length ? dest : proyectos; // fallback si no hay destacados
+      const dest = proyectosArr.filter((p) => p.destacado);
+      return dest.length ? dest : proyectosArr;
     }
-    if (categoriaSeleccionada == null) return proyectos;
-    return proyectos.filter(p => p.categoriaId === categoriaSeleccionada);
-  }, [proyectos, categoriaSeleccionada]);
+    if (categoriaSeleccionada == null) return proyectosArr;
+    return proyectosArr.filter((p) => p.categoriaId === categoriaSeleccionada);
+  }, [proyectosArr, categoriaSeleccionada]);
 
   // slides desktop (3×2 = 6 por slide)
   const slides: ReactNode[][] = useMemo(() => {
-    if (isMobile) return [[]]; // no usamos carousel en mobile
+    if (isMobile) return [[]];
     const PAGE_SIZE = 6;
     const out: ReactNode[][] = [];
     for (let i = 0; i < proyectosFiltrados.length; i += PAGE_SIZE) {
-      const slice = proyectosFiltrados.slice(i, i + PAGE_SIZE).map(proy => (
+      const slice = proyectosFiltrados.slice(i, i + PAGE_SIZE).map((proy) => (
         <ProjectCard
           key={proy.id}
           titulo={proy.titulo}
@@ -86,33 +92,24 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
           githubUrl={proy.githubUrl}
           destacado={proy.destacado}
           nivel={proy.nivel}
-          tipo={categorias.find(c => c.id === proy.categoriaId)?.nombre ?? ''}
+          tipo={categoriasArr.find((c) => c.id === proy.categoriaId)?.nombre ?? ''}
         />
       ));
       out.push(slice);
     }
     return out.length ? out : [[]];
-  }, [isMobile, proyectosFiltrados, categorias]);
+  }, [isMobile, proyectosFiltrados, categoriasArr]);
 
   return (
     <section id="proyectos" className="pt-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <h2 className="text-4xl font-bold mb-2 text-left md:text-left">Proyectos</h2>
 
-        <p className="text-gray-600 mb-6 leading-relaxed max-w-[72ch] text-pretty text-base md:text-lg">
-          Aquí presento proyectos construidos de principio a fin: e-commerce con pasarela de pago,
-          sistemas internos, dashboards y sitios rápidos y accesibles. Trabajo con Next.js/React,
-          TypeScript y Laravel/Node sobre PostgreSQL, priorizando rendimiento, seguridad y buenas
-          prácticas. Cada tarjeta incluye demo y repositorio para revisar estructura y decisiones técnicas.
-        </p>
+        {/* ... (tu texto descriptivo) ... */}
 
-        {/* filtros centrados */}
+        {/* filtros */}
         <div className="flex justify-center">
-          <div
-            className="flex gap-3 mb-8 overflow-x-auto sm:overflow-visible py-2 px-1 sm:px-0
-                       scrollbar-thin scrollbar-thumb-purple-400 scrollbar-track-transparent"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
+          <div className="flex gap-3 mb-8 overflow-x-auto sm:overflow-visible py-2 px-1 sm:px-0 scrollbar-thin scrollbar-thumb-purple-400 scrollbar-track-transparent">
             <button
               onClick={() => select(null)}
               className={`min-w-[140px] flex-shrink-0 px-4 py-2 rounded-xl font-medium transition ${
@@ -122,7 +119,7 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
               }`}
               aria-pressed={categoriaSeleccionada === null}
             >
-              Todos ({proyectos.length})
+              Todos ({proyectosArr.length})
             </button>
 
             <button
@@ -137,7 +134,7 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
               ⭐ Destacados ({destacadosCount})
             </button>
 
-            {categorias.map(cat => (
+            {categoriasArr.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => select(cat.id)}
@@ -154,14 +151,10 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
           </div>
         </div>
 
-        {/* MOBILE: fila única desplazable */}
+        {/* MOBILE */}
         {isMobile ? (
-          <div
-            className="-mx-4 px-4 flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory
-                       scrollbar-thin scrollbar-thumb-purple-400"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
-            {proyectosFiltrados.map(proy => (
+          <div className="-mx-4 px-4 flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-purple-400" style={{ WebkitOverflowScrolling: 'touch' }}>
+            {proyectosFiltrados.map((proy) => (
               <div key={proy.id} className="snap-center shrink-0 w-[100%]">
                 <ProjectCard
                   titulo={proy.titulo}
@@ -172,7 +165,7 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
                   githubUrl={proy.githubUrl}
                   destacado={proy.destacado}
                   nivel={proy.nivel}
-                  tipo={categorias.find(c => c.id === proy.categoriaId)?.nombre ?? ''}
+                  tipo={categoriasArr.find((c) => c.id === proy.categoriaId)?.nombre ?? ''}
                 />
               </div>
             ))}

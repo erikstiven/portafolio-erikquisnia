@@ -26,11 +26,13 @@ export default function LandingPage() {
       <div className="max-w-6xl mx-auto px-4 md:px-6 pb-20">
         <SeccionExperiencia experiencias={experiencias} />
         <SeccionProyectos proyectos={proyectos} categorias={categorias} />
-      </div>
+      
 
       {/* Estas secciones ya traen su propio max-w, colócalas fuera */}
       <SeccionSobreMiSimple {...SOBRE_MI} />
       <SeccionTecnologias />
+
+      </div>
 
       <Footer />
     </>

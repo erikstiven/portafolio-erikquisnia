@@ -15,8 +15,8 @@ interface HeroParticlesProps {
 
 export default function HeroParticles({
   color = '#a78bfa',
-  density = 70,
-  linkOpacity = 0.22,
+  density = 90,
+  linkOpacity = 0.32,
   parallaxForce = 60,
   size = { min: 1, max: 3 }
 }: HeroParticlesProps) {

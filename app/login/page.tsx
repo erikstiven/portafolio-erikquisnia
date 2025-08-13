@@ -1,20 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
+import api from '@/lib/api'; // usa tu instancia axios con baseURL
 
-interface LoginResponse {
-  token: string;
-}
+interface LoginResponse { token: string }
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const setToken = useAuthStore((state) => state.setToken);
+  const setToken = useAuthStore((s) => s.setToken);
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -23,19 +21,25 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
+    const t = toast.loading('Iniciando sesión...');
     try {
-      const res = await axios.post<LoginResponse>(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
-        { email, password }
-      );
-      const token = res.data.token;
-      setToken(token);
-      localStorage.setItem('token', token);
-      toast.success('¡Login exitoso!');
+      // api ya tiene baseURL = NEXT_PUBLIC_API_URL
+      const { data } = await api.post<LoginResponse>('/auth/login', { email, password });
+      setToken(data.token);
+      localStorage.setItem('token', data.token);
+      toast.success('¡Login exitoso!', { id: t });
       router.push('/admin');
-    } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Credenciales incorrectas o error de servidor.');
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message;
+      if (status === 401) {
+        toast.error(msg || 'Credenciales incorrectas.', { id: t });
+      } else if (status === 400) {
+        toast.error(msg || 'Faltan campos.', { id: t });
+      } else {
+        toast.error('Error de servidor.', { id: t });
+      }
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
@@ -44,12 +48,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 to-blue-600 px-4">
       <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl p-10 w-full max-w-md">
-        {/* Logo + nombre Portafy centrados */}
         <div className="flex flex-col items-center gap-2 mb-10">
           <img src="/logo.png" alt="Portafy logo" className="w-16 h-16 drop-shadow" />
           <span className="text-3xl font-extrabold text-white tracking-tight">Portafy</span>
         </div>
-        {/* Campos login */}
         <div className="mb-4">
           <label className="block text-white text-sm font-semibold mb-1">Usuario</label>
           <input
@@ -77,12 +79,6 @@ export default function LoginPage() {
         >
           {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
         </button>
-        {/* <p className="text-center text-white text-sm mt-4">
-          ¿Olvidaste tu contraseña?{' '}
-          <a href="#" className="font-semibold underline hover:text-white/80">
-            Haz clic aquí
-          </a>
-        </p> */}
       </div>
     </div>
   );

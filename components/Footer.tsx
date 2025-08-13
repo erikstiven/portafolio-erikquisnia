@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRedes } from '@/hooks/useRedes';      // <- ajusta si tu ruta es distinta
+import { useRedes } from '@/hooks/useRedes';
 import type { RedSocial } from '@/types/redSocial';
 
 import {
@@ -38,10 +38,8 @@ function pickIconByKey(key: string) {
 }
 
 function pickIconFrom(r: RedSocial) {
-  // 1) si tu API envía `icono`, se respeta
   if (r.icono) return pickIconByKey(r.icono);
 
-  // 2) fallback por nombre / url
   const n = (r.nombre ?? '').toLowerCase();
   const u = (r.url ?? '').toLowerCase();
   const has = (...keys: string[]) => keys.some(k => n.includes(k) || u.includes(k));
@@ -64,36 +62,68 @@ function pickIconFrom(r: RedSocial) {
 }
 
 export default function Footer() {
-  const { redes, loading } = useRedes(); // ← ahora sí dentro del componente
+  const { redes, loading } = useRedes();
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t bg-gray-950 text-gray-300">
-      {/* línea superior con gradiente */}
-      <div className="h-[3px] w-full" />
+    <footer className="bg-gray-950 text-gray-300 border-t border-white/10">
+      {/* línea superior gradiente (visible) */}
+      <div className="h-[6px] w-full bg-gradient-to-r " />
 
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          {/* copy */}
-          <div className="text-sm leading-relaxed">
-            <p className="text-gray-400">© {year} — Erik Quisnia. Todos los derechos reservados.</p>
-
-            {/* Enlaces internos (opcional) */}
-             <nav className="mt-2 flex flex-wrap gap-4 text-gray-400">
-              <Link href="#proyectos" className="hover:text-white transition">Proyectos</Link>
-              <Link href="#experiencia" className="hover:text-white transition">Experiencia</Link>
-              <Link href="#sobremi" className="hover:text-white transition">Sobre mí</Link>
-              <Link href="#tecnologias" className="hover:text-white transition">Tecnologías</Link>
-            </nav> 
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12 sm:py-14 lg:py-16">
+        {/* TOP: 3 columnas responsivas con más respiro */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14">
+          {/* Col 1: copy */}
+          <div className="space-y-3">
+            <h3 className="text-white text-lg sm:text-xl font-semibold">Erik Quisnia</h3>
+            <p className="text-gray-400 text-base leading-relaxed">
+              © {year}. Todos los derechos reservados.
+            </p>
           </div>
 
-          {/* redes del módulo */}
-          <div className="flex items-center gap-3 md:gap-4">
+          {/* Col 2: enlaces internos — centrado en móvil */}
+          <nav className="order-3 md:order-none">
+            <ul className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 md:gap-y-4">
+              <li>
+                <Link href="#proyectos" className="hover:text-white transition text-base">
+                  Proyectos
+                </Link>
+              </li>
+              <li>
+                <Link href="#experiencia" className="hover:text-white transition text-base">
+                  Experiencia
+                </Link>
+              </li>
+              <li>
+                <Link href="#sobremi" className="hover:text-white transition text-base">
+                  Sobre mí
+                </Link>
+              </li>
+              <li>
+                <Link href="#tecnologias" className="hover:text-white transition text-base">
+                  Tecnologías
+                </Link>
+              </li>
+              <li>
+                <Link href="#inicio" className="hover:text-white transition text-base">
+                  Inicio
+                </Link>
+              </li>
+              <li>
+                <Link href="#contacto" className="hover:text-white transition text-base">
+                  Contacto
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          {/* Col 3: redes — más grandes y con wrap */}
+          <div className="flex flex-wrap items-center justify-start md:justify-end gap-4 sm:gap-5">
             {loading
-              ? Array.from({ length: 4 }).map((_, i) => (
+              ? Array.from({ length: 6 }).map((_, i) => (
                   <span
                     key={i}
-                    className="h-10 w-10 rounded-full bg-white/5 animate-pulse border border-white/10"
+                    className="h-10 w-10 lg:h-12 lg:w-12 rounded-full bg-white/5 animate-pulse border border-white/10"
                   />
                 ))
               : redes.map((r) => {
@@ -106,17 +136,22 @@ export default function Footer() {
                       rel="noopener noreferrer"
                       aria-label={r.nombre ?? 'red social'}
                       title={r.nombre ?? 'red social'}
-                      className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10 hover:text-white transition"
+                      className="group inline-flex h-10 w-10 lg:h-12 lg:w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10 hover:text-white transition"
                     >
-                      <Icon className="text-[18px]" />
+                      <Icon className="text-[20px] lg:text-[24px]" />
                     </a>
                   );
                 })}
           </div>
         </div>
 
-        <div className="mt-6 border-t border-white/10 pt-4 text-xs text-gray-500">
-          <span>Construido con Next.js, TypeScript y TailwindCSS.</span>
+        {/* BOTTOM: línea y meta — stack en móvil, separados en desktop */}
+        <div className="mt-12 border-t border-white/10 pt-8">
+          <div className="flex flex-col lg:items-center items-start  justify-between gap-4">
+            <p className="text-sm sm:text-base text-gray-400">
+              Construido con Next.js, TypeScript y TailwindCSS.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

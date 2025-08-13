@@ -9,7 +9,7 @@ const waMsg = encodeURIComponent('Hola, vi tu portafolio y me gustaría conversa
 export default function SeccionHero() {
   return (
     // Full-bleed: ocupa todo el ancho del viewport
-    <section className="relative w-full overflow-hidden">
+    <section id="hero" className="relative w-full overflow-hidden pt-10 md:pt-14 scroll-mt-28">
       {/* Fondo/animación de ancho completo */}
       <div className="absolute inset-0 -z-20 bg-gradient-to-br from-white via-violet-50/60 to-white" />
       <HeroParticles />

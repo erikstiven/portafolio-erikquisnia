@@ -14,34 +14,26 @@ export function useRedes() {
 
   useEffect(() => {
     let alive = true;
-    setLoading(true);
-
-    getRedes()
-      .then((res) => {
-        const arr: unknown = res.data;
-        const raw: RedSocial[] = Array.isArray(arr) ? (arr as RedSocial[]) : (res as any)?.data?.data ?? [];
-
+    (async () => {
+      setLoading(true);
+      try {
+        const raw = await getRedes(); // ← ahora es RedSocial[]
         const cleaned = raw
           .filter(Boolean)
           .filter((r) => r.activo !== false)
           .map((r) => ({ ...r, url: sanitizeUrl(r.url) }));
 
-        if (alive) {
-          setData(cleaned);
-          setLoading(false);
-        }
-      })
-      .catch((e) => {
+        if (alive) setData(cleaned);
+      } catch (e) {
         if (alive) {
           setError(e);
           setData([]);
-          setLoading(false);
         }
-      });
-
-    return () => {
-      alive = false;
-    };
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
   }, []);
 
   // quitar duplicados por URL / nombre

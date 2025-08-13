@@ -142,7 +142,7 @@ export default function SeccionTecnologias() {
   ];
 
   return (
-    <section id="tecnologias" className="py-12 md:py-16">
+    <section id="tecnologias" className="pt-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
           Tecnologías y Herramientas

@@ -1,15 +1,39 @@
 import api from '@/lib/api';
-import { ExperienciaSchema } from '@/types/experiencia';
+import type { Experiencia, ExperienciaSchema } from '@/types/experiencia';
 
-export function getExperiencias() {
-  return api.get('/experiencias');
+export type ApiPage<T> = {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
+export async function getExperiencias(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
+  const { data } = await api.get<ApiPage<Experiencia>>('/experiencias', { params });
+  return data.items;
 }
-export function createExperiencia(data: ExperienciaSchema) {
-  return api.post('/experiencias', data);
+
+export async function getExperienciasPage(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
+  const { data } = await api.get<ApiPage<Experiencia>>('/experiencias', { params });
+  return data;
 }
-export function updateExperiencia(id: number, data: ExperienciaSchema) {
-  return api.put(`/experiencias/${id}`, data);
+
+export async function getExperienciasCount() {
+  const { data } = await api.get<ApiPage<Experiencia>>('/experiencias', { params: { page: 1, pageSize: 1 } });
+  return data.total ?? 0;
 }
-export function deleteExperiencia(id: number) {
-  return api.delete(`/experiencias/${id}`);
+
+export async function createExperiencia(payload: ExperienciaSchema) {
+  const { data } = await api.post<Experiencia>('/experiencias', { ...payload, activo: true });
+  return data;
+}
+
+export async function updateExperiencia(id: number | string, payload: ExperienciaSchema) {
+  const { data } = await api.put<Experiencia>(`/experiencias/${id}`, payload);
+  return data;
+}
+
+export async function deleteExperiencia(id: number | string) {
+  await api.delete<void>(`/experiencias/${id}`);
 }

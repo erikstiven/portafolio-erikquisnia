@@ -20,7 +20,7 @@ import {
 const links = [
   { href: '/admin', label: 'Dashboard', icon: <FaTachometerAlt /> },
   { href: '/admin/proyectos', label: 'Proyectos', icon: <FaProjectDiagram /> },
-  { href: '/admin/servicios', label: 'Servicios', icon: <FaServicestack /> },
+  // { href: '/admin/servicios', label: 'Servicios', icon: <FaServicestack /> },
   { href: '/admin/redes', label: 'Redes Sociales', icon: <FaShareAlt /> },
   { href: '/admin/categorias', label: 'Categorías', icon: <FaThList /> },
   { href: '/admin/experiencia', label: 'Experiencia', icon: <FaBriefcase /> },

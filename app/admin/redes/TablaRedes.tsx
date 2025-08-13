@@ -1,3 +1,4 @@
+// app/admin/redes/TablaRedes.tsx
 'use client';
 
 import TablaCrud from '@/components/ui/TablaCrud';
@@ -6,11 +7,12 @@ import { RedSocial } from '@/types/redSocial';
 
 interface Props {
   redes: RedSocial[];
+  loading?: boolean;                // ← nuevo
   onEdit: (red: RedSocial) => void;
   onDelete: (id: number) => void;
 }
 
-export default function TablaRedes({ redes, onEdit, onDelete }: Props) {
+export default function TablaRedes({ redes, loading = false, onEdit, onDelete }: Props) {
   return (
     <TablaCrud
       data={redes}
@@ -18,6 +20,7 @@ export default function TablaRedes({ redes, onEdit, onDelete }: Props) {
       onEdit={onEdit}
       onDelete={onDelete}
       getId={(red) => red.id}
+      loading={loading}             // ← pasa el loading
     />
   );
 }

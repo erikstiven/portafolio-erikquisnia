@@ -1,24 +1,45 @@
 import api from '@/lib/api';
+import type { Categoria, CategoriaSchema } from '@/types/categoria';
 
-export interface Categoria {
-  id: number;
-  nombre: string;
+export type ApiPage<T> = {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
+// Listado solo como array
+export async function getCategorias(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
+  const { data } = await api.get<ApiPage<Categoria>>('/categorias', { params });
+  return data.items;
 }
-export const getCategorias = () =>
-  api.get<Categoria[]>('/categorias');
 
-import { CategoriaSchema } from '@/types/categoria';
+// Página completa
+export async function getCategoriasPage(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
+  const { data } = await api.get<ApiPage<Categoria>>('/categorias', { params });
+  return data;
+}
 
+// Contador
+export async function getCategoriasCount() {
+  const { data } = await api.get<ApiPage<Categoria>>('/categorias', { params: { page: 1, pageSize: 1 } });
+  return data.total ?? 0;
+}
 
+// Crear
+export async function createCategoria(payload: CategoriaSchema) {
+  const { data } = await api.post<Categoria>('/categorias', { ...payload, activo: true });
+  return data;
+}
 
-// Crear nueva categoría
-export const createCategoria = (data: CategoriaSchema) =>
-  api.post('/categorias', data);
+// Actualizar
+export async function updateCategoria(id: number | string, payload: CategoriaSchema) {
+  const { data } = await api.put<Categoria>(`/categorias/${id}`, payload);
+  return data;
+}
 
-// Actualizar categoría
-export const updateCategoria = (id: number, data: CategoriaSchema) =>
-  api.put(`/categorias/${id}`, data);
-
-// Eliminar categoría
-export const deleteCategoria = (id: number) =>
-  api.delete(`/categorias/${id}`);
+// Eliminar
+export async function deleteCategoria(id: number | string) {
+  await api.delete<void>(`/categorias/${id}`);
+}
