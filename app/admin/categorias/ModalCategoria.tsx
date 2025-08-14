@@ -1,31 +1,26 @@
-'use client';
+// components/admin/categorias/ModalCategorias.tsx
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import FormCategoria from './FormCategoria';
-import type { CategoriaSchema } from '@/types/categoria';
+import React from 'react';
+import FormCategorias from './FormCategoria';
 
-interface ModalCategoriaProps {
-  open: boolean;
+interface ModalCategoriasProps {
+  isOpen: boolean;
   onClose: () => void;
-  onSave: (data: CategoriaSchema) => void;
-  categoria?: CategoriaSchema | null;
+  categoria?: { id: number; nombre: string } | null;  // Aquí cambiamos `undefined` por `null`
 }
 
-export default function ModalCategoria({ open, onClose, onSave, categoria }: ModalCategoriaProps) {
+const ModalCategorias: React.FC<ModalCategoriasProps> = ({ isOpen, onClose, categoria }) => {
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{categoria ? 'Editar Categoría' : 'Nueva Categoría'}</DialogTitle>
-        </DialogHeader>
-        <FormCategoria
-          defaultValues={categoria || {}}
-          onSubmit={(data) => {
-            onSave(data);
-            onClose();
-          }}
-        />
-      </DialogContent>
-    </Dialog>
+    <div>
+      <div>
+        <h2>{categoria ? 'Editar Categoría' : 'Crear Categoría'}</h2>
+        <FormCategorias categoria={categoria} onClose={onClose} />
+      </div>
+      <button onClick={onClose}>Cerrar</button>
+    </div>
   );
-}
+};
+
+export default ModalCategorias;

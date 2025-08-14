@@ -1,12 +1,14 @@
-'use client';
+// components/admin/categorias/columns.tsx
+import { ColumnDef } from '@tanstack/react-table';
+import { Categoria } from '@/types/categoria';
 
-import type { ColumnaCrud } from '@/components/ui/TablaCrud';
-import type { Categoria } from '@/types/categoria';
-
-/** Columnas adaptadas a TablaCrud */
-export const columnasCategoria: ColumnaCrud<Categoria>[] = [
+export const categoriasColumns: ColumnDef<Categoria>[] = [
   {
-    key: 'nombre',
-    label: 'Nombre',
+    header: 'ID',
+    accessorKey: 'id',
+  },
+  {
+    header: 'Nombre',
+    accessorKey: 'nombre',
   },
 ];

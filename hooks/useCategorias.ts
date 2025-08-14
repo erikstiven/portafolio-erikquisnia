@@ -1,56 +1,32 @@
-import { useCallback, useEffect, useState } from 'react';
-import { getCategoriasPage, createCategoria, updateCategoria, deleteCategoria } from '@/services/categoriasService';
-import type { Categoria, CategoriaSchema } from '@/types/categoria';
+// hooks/useCategorias.ts
+import { useState, useEffect } from 'react';
+import { Categoria, CategoriaResponse } from '@/types/categoria';
 
-export function useCategorias() {
+export const useCategorias = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchCategorias = useCallback(async () => {
+  const fetchCategorias = async (page: number = 1) => {
     setLoading(true);
     try {
-      const data = await getCategoriasPage({ page, pageSize });
+      // Hacer la solicitud a la API, el proxy en next.config.js se encargará de redirigir a Express
+      const response = await fetch(`/api/categorias?page=${page}`);
+      if (!response.ok) {
+        throw new Error('Error al obtener las categorías');
+      }
+      const data: CategoriaResponse = await response.json();
       setCategorias(data.items);
-      setTotal(data.total);
-    } catch (error) {
-      console.error('Error cargando categorías:', error);
+    } catch (err) {
+      setError('Error al cargar las categorías');
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize]);
+  };
 
   useEffect(() => {
     fetchCategorias();
-  }, [fetchCategorias]);
+  }, []);
 
-  const addCategoria = async (payload: CategoriaSchema) => {
-    await createCategoria(payload);
-    fetchCategorias();
-  };
-
-  const editCategoria = async (id: number, payload: CategoriaSchema) => {
-    await updateCategoria(id, payload);
-    fetchCategorias();
-  };
-
-  const removeCategoria = async (id: number) => {
-    await deleteCategoria(id);
-    fetchCategorias();
-  };
-
-  return {
-    categorias,
-    loading,
-    page,
-    pageSize,
-    total,
-    setPage,
-    setPageSize,
-    addCategoria,
-    editCategoria,
-    removeCategoria,
-  };
-}
+  return { categorias, loading, error, fetchCategorias };
+};

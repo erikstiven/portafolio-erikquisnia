@@ -1,30 +1,35 @@
-'use client';
+// components/admin/categorias/page.tsx
+'use client'; // Esto marca este archivo como un Componente de Cliente
 
-import TablaCrud from '@/components/ui/TablaCrud';
-import type { Categoria } from '@/types/categoria';
-import { columnasCategoria } from './columns';
+import React, { useState } from 'react';
+import { useCategorias } from '../../../hooks/useCategorias';
+import TablaCategorias from './TablaCategorias';
+import ModalCategorias from './ModalCategoria';
 
-interface Props {
-  categorias: Categoria[];
-  loading?: boolean;
-  onEdit: (categoria: Categoria) => void;
-  onDelete: (id: number) => void;
-}
+const CategoriasPage: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<{ id: number; nombre: string } | null>(null);
 
-export default function TablaCategorias({
-  categorias,
-  loading = false,
-  onEdit,
-  onDelete
-}: Props) {
+  const { categorias, loading, error, fetchCategorias } = useCategorias();
+
+  const abrirModal = (categoria?: { id: number; nombre: string }) => {
+    setCategoriaSeleccionada(categoria || null);  // Sigue pasando `null` si no hay categoría seleccionada
+    setIsModalOpen(true);
+  };
+
+  const cerrarModal = () => {
+    setIsModalOpen(false);
+    fetchCategorias();
+  };
+
   return (
-    <TablaCrud
-      data={categorias}
-      columns={columnasCategoria}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      getId={(categoria) => categoria.id}
-      loading={loading}
-    />
+    <div>
+      <h1>Categorías</h1>
+      <button onClick={() => abrirModal()}>Crear Categoría</button>
+      {loading ? <p>Cargando...</p> : <TablaCategorias categorias={categorias} />}
+      <ModalCategorias isOpen={isModalOpen} onClose={cerrarModal} categoria={categoriaSeleccionada} />
+    </div>
   );
-}
+};
+
+export default CategoriasPage;

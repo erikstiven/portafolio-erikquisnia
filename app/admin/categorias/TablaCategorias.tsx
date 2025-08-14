@@ -1,30 +1,54 @@
-'use client';
+// components/admin/categorias/TablaCategorias.tsx
+import React from 'react';
+import { useReactTable, flexRender } from '@tanstack/react-table';
+import { categoriasColumns } from './columns';
+import { Categoria } from '@/types/categoria';
 
-import TablaCrud from '@/components/ui/TablaCrud';
-import type { Categoria } from '@/types/categoria';
-import { columnasCategoria } from './columns';
-
-interface Props {
+interface TablaCategoriasProps {
   categorias: Categoria[];
-  loading?: boolean;
-  onEdit: (categoria: Categoria) => void;
-  onDelete: (id: number) => void;
 }
 
-export default function TablaCategorias({
-  categorias,
-  loading = false,
-  onEdit,
-  onDelete
-}: Props) {
+const TablaCategorias: React.FC<TablaCategoriasProps> = ({ categorias }) => {
+  const table = useReactTable({
+    data: categorias,
+    columns: categoriasColumns,
+    getCoreRowModel: () => ({
+      rows: categorias.map((categoria) => ({
+        id: categoria.id.toString(),
+        cells: [
+          { columnId: 'id', value: categoria.id },
+          { columnId: 'nombre', value: categoria.nombre },
+        ],
+      })),
+    }),
+  });
+
   return (
-    <TablaCrud
-      data={categorias}
-      columns={columnasCategoria}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      getId={(categoria) => categoria.id}
-      loading={loading}
-    />
+    <table>
+      <thead>
+        {table.getHeaderGroups().map(headerGroup => (
+          <tr key={headerGroup.id}>
+            {headerGroup.headers.map(header => (
+              <th key={header.id}>
+                {flexRender(header.column.columnDef.header, header.getContext())}
+              </th>
+            ))}
+          </tr>
+        ))}
+      </thead>
+      <tbody>
+        {table.getRowModel().rows.map(row => (
+          <tr key={row.id}>
+            {row.getVisibleCells().map(cell => (
+              <td key={cell.id}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
-}
+};
+
+export default TablaCategorias;

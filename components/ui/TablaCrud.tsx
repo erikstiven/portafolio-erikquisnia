@@ -1,9 +1,6 @@
-// components/ui/TablaCrud.tsx
-'use client';
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton'; // si no lo tienes, ver nota abajo
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface ColumnaCrud<T> {
   key: keyof T | string;
@@ -19,8 +16,13 @@ interface TablaCrudProps<T> {
   onEdit?: (item: T) => void;
   onDelete?: (id: any) => void;
   getId: (item: T) => any;
-  loading?: boolean;        // <-- nuevo
-  skeletonRows?: number;    // <-- opcional
+  loading?: boolean;
+  skeletonRows?: number;
+  page: number;
+  pageSize: number;
+  total: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
 }
 
 export default function TablaCrud<T>({
@@ -31,6 +33,11 @@ export default function TablaCrud<T>({
   getId,
   loading = false,
   skeletonRows = 6,
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  onPageSizeChange,
 }: TablaCrudProps<T>) {
   const rows = Array.isArray(data) ? data : [];
   const hasActions = Boolean(onEdit || onDelete);
@@ -38,7 +45,6 @@ export default function TablaCrud<T>({
 
   return (
     <div className="rounded-2xl shadow-xl border border-gray-200 w-full max-w-6xl mx-auto bg-gradient-to-br from-white via-slate-50 to-white overflow-hidden">
-      {/* DESKTOP */}
       <table className="min-w-full table-auto text-sm bg-transparent hidden md:table">
         <thead className="bg-gray-100/80 text-gray-700">
           <tr>
@@ -59,10 +65,7 @@ export default function TablaCrud<T>({
             Array.from({ length: skeletonRows }).map((_, i) => (
               <tr key={`sk-${i}`} className="border-b last:border-b-0">
                 {columns.map((col, idx) => (
-                  <td
-                    key={`${i}-${col.key as string}`}
-                    className={`px-4 py-4 ${col.hideOnMobile ? 'hidden md:table-cell' : ''}`}
-                  >
+                  <td key={`${i}-${col.key as string}`} className={`px-4 py-4 ${col.hideOnMobile ? 'hidden md:table-cell' : ''}`}>
                     <Skeleton className="h-5 w-full" />
                   </td>
                 ))}
@@ -84,14 +87,11 @@ export default function TablaCrud<T>({
             </tr>
           ) : (
             rows.map((item) => (
-              <tr
-                key={getId(item)}
-                className="even:bg-white odd:bg-gray-50 hover:bg-blue-50 hover:shadow transition-all duration-150 border-b last:border-b-0"
-              >
+              <tr key={getId(item)} className="even:bg-white odd:bg-gray-50 hover:bg-blue-50 hover:shadow transition-all duration-150 border-b last:border-b-0">
                 {columns.map((col) => (
                   <td
                     key={col.key as string}
-                    className={`px-4 py-4 align-middle whitespace-normal break-all ${col.hideOnMobile ? 'hidden md:table-cell' : ''} ${col.className || ''}`}
+                    className={`px-4 py-4 align-middle whitespace-normal break-all ${col.hideOnMobile ? 'hidden md:table-cell' : ''}`}
                   >
                     {col.render ? col.render(item) : (item as any)[col.key]}
                   </td>

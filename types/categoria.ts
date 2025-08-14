@@ -1,14 +1,14 @@
-import { z } from 'zod';
+// types/Categorias.ts
 
-export const categoriaSchema = z.object({
-  id: z.number().optional(), // Solo para editar
-  nombre: z.string().min(1, 'El nombre es obligatorio'),
-  descripcion: z.string().optional(),
-});
-
-export type CategoriaSchema = z.infer<typeof categoriaSchema>;
-
-export interface Categoria extends CategoriaSchema {
+export interface Categoria {
   id: number;
-  activo: boolean;
+  nombre: string;
+}
+
+export interface CategoriaResponse {
+  items: Categoria[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 }
