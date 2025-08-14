@@ -1,16 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import TablaExperiencia from './TablaExperiencia';
+import { getExperiencias, deleteExperiencia } from '@/services/experienciaService';
+import ModalExperiencia from './ModalExperiencia';
 import { Experiencia } from '@/types/experiencia';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import TablaExperiencia from './TablaExperiencia';
-import {
-  getExperiencias,
-  deleteExperiencia,
-} from '@/services/experienciaService';
-import ModalExperiencia from './ModalExperiencia';
-import { FaPlus } from 'react-icons/fa';
 
 export default function PageExperiencia() {
   const [experiencias, setExperiencias] = useState<Experiencia[]>([]);
@@ -21,9 +17,9 @@ export default function PageExperiencia() {
   const fetchExperiencias = async () => {
     setLoading(true);
     try {
-      const res = await getExperiencias();
-      setExperiencias(res.data as Experiencia[]);
-    } catch (error) {
+      const items = await getExperiencias();  // Aquí obtenemos directamente las experiencias
+      setExperiencias(items);  // `items` es un array de `Experiencia`
+    } catch {
       toast.error('Error al cargar experiencias');
     } finally {
       setLoading(false);
@@ -31,7 +27,7 @@ export default function PageExperiencia() {
   };
 
   useEffect(() => {
-    fetchExperiencias();
+    fetchExperiencias();  // Cargar experiencias al montar el componente
   }, []);
 
   const handleNuevo = () => {
@@ -49,7 +45,7 @@ export default function PageExperiencia() {
       await deleteExperiencia(id);
       toast.success('Experiencia eliminada');
       fetchExperiencias();
-    } catch (error) {
+    } catch {
       toast.error('Error al eliminar');
     }
   };
@@ -63,8 +59,7 @@ export default function PageExperiencia() {
           className="w-full sm:w-auto bg-black text-white text-base font-semibold shadow rounded"
           disabled={loading}
         >
-          <FaPlus className="text-base" />
-          Nuevo
+          + Nueva
         </Button>
       </div>
 
@@ -75,7 +70,7 @@ export default function PageExperiencia() {
         </div>
       ) : (
         <TablaExperiencia
-          experiencias={experiencias}
+          experiencias={experiencias}  // Pasamos directamente `experiencias`
           onEdit={handleEditar}
           onDelete={handleEliminar}
         />

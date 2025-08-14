@@ -1,7 +1,7 @@
 'use client';
 
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { FaShareAlt, FaFolderOpen, FaWrench, FaTags, FaUserAstronaut } from 'react-icons/fa';
+import { FaShareAlt, FaFolderOpen, FaTags, FaUserAstronaut } from 'react-icons/fa';
 
 const gradients = [
   'from-cyan-500 via-blue-500 to-indigo-600',
@@ -23,11 +23,6 @@ export default function AdminDashboard() {
       title: 'Proyectos',
       value: data?.proyectos ?? 0,
       icon: <FaFolderOpen className="text-4xl text-white/90 drop-shadow" />,
-    },
-    {
-      title: 'Servicios',
-      value: data?.servicios ?? 0,
-      icon: <FaWrench className="text-4xl text-white/90 drop-shadow" />,
     },
     {
       title: 'Categorías',
@@ -56,7 +51,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto"> {/* Cambié lg:grid-cols-4 a lg:grid-cols-3 */}
         {cards.map((card, idx) => (
           <div
             key={idx}

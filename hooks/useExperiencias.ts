@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react'
-import type { Experiencia } from '@/types/experiencia'
+// hooks/useExperiencias.ts
+import { useState, useEffect } from 'react';
+import { Experiencia } from '@/types/experiencia';
+import { getExperiencias } from '@/services/experienciaService';  // Usar servicio en lugar de fetch
 
 export function useExperiencias() {
-  const [experiencias, setExperiencias] = useState<Experiencia[]>([])
+  const [experiencias, setExperiencias] = useState<Experiencia[]>([]);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/experiencias`)
-      .then(r => r.json())
-      .then(data => Array.isArray(data) ? setExperiencias(data) : setExperiencias([]))
-      .catch(() => setExperiencias([]))
-  }, [])
+    getExperiencias()
+      .then((data) => setExperiencias(data))
+      .catch(() => setExperiencias([]));
+  }, []);
 
-  return experiencias
+  return experiencias;
 }

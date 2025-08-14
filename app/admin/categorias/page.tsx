@@ -1,35 +1,83 @@
-// components/admin/categorias/page.tsx
-'use client'; // Esto marca este archivo como un Componente de Cliente
+'use client';
 
-import React, { useState } from 'react';
-import { useCategorias } from '../../../hooks/useCategorias';
+import { useEffect, useState } from 'react';
 import TablaCategorias from './TablaCategorias';
+import { getCategorias, deleteCategoria } from '@/services/categoriasService';
 import ModalCategorias from './ModalCategoria';
+import { Categoria } from '@/types/categoria';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
-const CategoriasPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<{ id: number; nombre: string } | null>(null);
+export default function PageCategorias() {
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [categoriaEditando, setCategoriaEditando] = useState<Categoria | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const { categorias, loading, error, fetchCategorias } = useCategorias();
-
-  const abrirModal = (categoria?: { id: number; nombre: string }) => {
-    setCategoriaSeleccionada(categoria || null);  // Sigue pasando `null` si no hay categoría seleccionada
-    setIsModalOpen(true);
+  const fetchCategorias = async () => {
+    setLoading(true);
+    try {
+      const items = await getCategorias();
+      setCategorias(items);
+    } catch {
+      toast.error('Error al cargar categorías');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const cerrarModal = () => {
-    setIsModalOpen(false);
-    fetchCategorias();
+  useEffect(() => {
+    fetchCategorias(); // Cargar categorías por defecto (página 1)
+  }, []);
+
+  const handleNuevo = () => {
+    setCategoriaEditando(null);
+    setModalAbierto(true);
+  };
+
+  const handleEditar = (categoria: Categoria) => {
+    setCategoriaEditando(categoria);
+    setModalAbierto(true);
+  };
+
+  const handleEliminar = async (id: number) => {
+    try {
+      await deleteCategoria(id);
+      toast.success('Categoría eliminada');
+      fetchCategorias();
+    } catch {
+      toast.error('Error al eliminar');
+    }
   };
 
   return (
-    <div>
-      <h1>Categorías</h1>
-      <button onClick={() => abrirModal()}>Crear Categoría</button>
-      {loading ? <p>Cargando...</p> : <TablaCategorias categorias={categorias} />}
-      <ModalCategorias isOpen={isModalOpen} onClose={cerrarModal} categoria={categoriaSeleccionada} />
+    <div className="p-4 sm:p-6 space-y-6 w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl font-bold">Categorías</h1>
+        <Button
+          onClick={handleNuevo}
+          className="w-full sm:w-auto bg-black text-white text-base font-semibold shadow rounded"
+          disabled={loading}
+        >
+          + Nueva
+        </Button>
+      </div>
+
+      <div className="bg-white rounded shadow overflow-x-auto">
+        <TablaCategorias
+          categorias={categorias}
+          loading={loading}
+          onEdit={handleEditar}
+          onDelete={handleEliminar}
+        />
+      </div>
+
+      <ModalCategorias
+        open={modalAbierto}
+        onClose={() => setModalAbierto(false)}
+        fetchCategorias={fetchCategorias}
+        categoriaToEdit={categoriaEditando}
+      />
     </div>
   );
-};
-
-export default CategoriasPage;
+}

@@ -1,4 +1,4 @@
-// columns.ts
+// columns.tsx
 import { ColumnaCrud } from '@/components/ui/TablaCrud';
 import { Experiencia } from '@/types/experiencia';
 

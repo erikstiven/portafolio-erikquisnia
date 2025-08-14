@@ -1,59 +1,52 @@
-// components/admin/categorias/FormCategorias.tsx
+'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { createCategoria, updateCategoria } from '../../../services/categoriasService';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { categoriaSchema, CategoriaSchema } from '@/types/categoria';
+import { createCategoria, updateCategoria } from '@/services/categoriasService';
+import { toast } from 'sonner';
 
-const schema = z.object({
-  nombre: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
-});
-
-type FormData = {
-  nombre: string;
-};
-
-interface FormCategoriasProps {
-  categoria?: { id: number; nombre: string } | null;  // Aceptamos tanto 'null' como 'undefined'
-  onClose: () => void;
+interface Props {
+  initialData?: Partial<CategoriaSchema> & { id?: number };
+  onSuccess: () => void; // Función que se ejecutará tras el éxito de la acción
 }
 
-const FormCategorias: React.FC<FormCategoriasProps> = ({ categoria, onClose }) => {
-  const [loading, setLoading] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: categoria || { nombre: '' }, // Si no hay categoría, el valor por defecto es un objeto vacío
+export default function FormCategoria({ initialData, onSuccess }: Props) {
+  const { register, handleSubmit, formState: { errors } } = useForm<CategoriaSchema>({
+    resolver: zodResolver(categoriaSchema),
+    defaultValues: {
+      nombre: initialData?.nombre ?? '',  // Cargar el nombre inicial si existe
+    },
   });
 
-  const onSubmit = async (data: FormData) => {
-    setLoading(true);
+  const onSubmit = async (data: CategoriaSchema) => {
     try {
-      if (categoria) {
-        await updateCategoria(categoria.id, data.nombre);
+      if (initialData?.id) {
+        // Editar una categoría existente
+        await updateCategoria(initialData.id, data.nombre);
+        toast.success('Categoría actualizada');
       } else {
+        // Crear una nueva categoría
         await createCategoria(data.nombre);
+        toast.success('Categoría creada');
       }
-      onClose();
+      onSuccess();  // Llamamos la función onSuccess después de crear o editar
     } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+      toast.error('Error al guardar categoría');  // Manejo de errores
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <label>
-        Nombre:
-        <input type="text" {...register('nombre')} />
-        {errors.nombre && <span>{errors.nombre.message}</span>}
-      </label>
-      <button type="submit" disabled={loading}>
-        {categoria ? 'Actualizar' : 'Crear'}
-      </button>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Nombre</label>
+        <Input {...register('nombre')} />
+        {errors.nombre && <p className="text-red-500 text-sm">{errors.nombre.message}</p>} {/* Mostrar errores si existen */}
+      </div>
+      <Button type="submit">Guardar</Button>
     </form>
   );
-};
-
-export default FormCategorias;
+}

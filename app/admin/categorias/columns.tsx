@@ -1,14 +1,17 @@
-// components/admin/categorias/columns.tsx
-import { ColumnDef } from '@tanstack/react-table';
-import { Categoria } from '@/types/categoria';
+// columns.tsx
+'use client';
 
-export const categoriasColumns: ColumnDef<Categoria>[] = [
+import type { ColumnaCrud } from '@/components/ui/TablaCrud';
+import type { Categoria } from '@/types/categoria';
+
+export const columnasCategoria: ColumnaCrud<Categoria>[] = [
   {
-    header: 'ID',
-    accessorKey: 'id',
+    key: 'nombre',
+    label: 'Nombre',
   },
   {
-    header: 'Nombre',
-    accessorKey: 'nombre',
+    key: 'categoria',
+    label: 'Categoría',
+    render: (categoria) => categoria.nombre ?? '',
   },
 ];

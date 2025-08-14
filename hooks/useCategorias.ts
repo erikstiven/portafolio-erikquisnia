@@ -1,23 +1,19 @@
 // hooks/useCategorias.ts
 import { useState, useEffect } from 'react';
-import { Categoria, CategoriaResponse } from '@/types/categoria';
+import { Categoria } from '@/types/categoria';
+import { getCategorias } from '@/services/categoriasService';
 
 export const useCategorias = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCategorias = async (page: number = 1) => {
+  const fetchCategorias = async (page = 1) => {
     setLoading(true);
     try {
-      // Hacer la solicitud a la API, el proxy en next.config.js se encargará de redirigir a Express
-      const response = await fetch(`/api/categorias?page=${page}`);
-      if (!response.ok) {
-        throw new Error('Error al obtener las categorías');
-      }
-      const data: CategoriaResponse = await response.json();
-      setCategorias(data.items);
-    } catch (err) {
+      const items = await getCategorias(page);
+      setCategorias(items);
+    } catch (e) {
       setError('Error al cargar las categorías');
     } finally {
       setLoading(false);
@@ -25,7 +21,7 @@ export const useCategorias = () => {
   };
 
   useEffect(() => {
-    fetchCategorias();
+    fetchCategorias(); // Cargar categorías por defecto (página 1)
   }, []);
 
   return { categorias, loading, error, fetchCategorias };

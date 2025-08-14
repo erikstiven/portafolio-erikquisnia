@@ -1,54 +1,32 @@
 // services/categoriasService.ts
+import api from '@/lib/api';
+import { Categoria } from '@/types/categoria';
 
-import { CategoriaResponse } from '@/types/categoria';
+export async function getCategorias(page: number = 1) {
+  const { data } = await api.get<{ items: Categoria[] }>(`/categorias?page=${page}`);
+  return data.items; // Asegúrate de que `data.items` sea un array de Categoria
+}
 
-const API_URL = '/api/categorias'; // Cambia la URL si es necesario
+export async function getCategoriasPage(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
+  const { data } = await api.get<{ items: Categoria[]; total: number; page: number; pageSize: number; totalPages: number }>('/categorias', { params });
+  return data;
+}
 
-export const getCategorias = async (page: number = 1): Promise<CategoriaResponse> => {
-  const response = await fetch(`${API_URL}?page=${page}`);
-  if (!response.ok) {
-    throw new Error('Error al obtener las categorías');
-  }
-  return response.json();
-};
+export async function getCategoriasCount() {
+  const { data } = await api.get<{ total: number }>('/categorias', { params: { page: 1, pageSize: 1 } });
+  return data.total ?? 0;
+}
 
-export const createCategoria = async (nombre: string) => {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ nombre }),
-  });
+export async function createCategoria(nombre: string) {
+  const { data } = await api.post('/categorias', { nombre });
+  return data;
+}
 
-  if (!response.ok) {
-    throw new Error('Error al crear la categoría');
-  }
-  return response.json();
-};
+export async function updateCategoria(id: number, nombre: string) {
+  const { data } = await api.put(`/categorias/${id}`, { nombre });
+  return data;
+}
 
-export const updateCategoria = async (id: number, nombre: string) => {
-  const response = await fetch(`${API_URL}/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ nombre }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Error al actualizar la categoría');
-  }
-  return response.json();
-};
-
-export const deleteCategoria = async (id: number) => {
-  const response = await fetch(`${API_URL}/${id}`, {
-    method: 'DELETE',
-  });
-
-  if (!response.ok) {
-    throw new Error('Error al eliminar la categoría');
-  }
-  return response.json();
-};
+export async function deleteCategoria(id: number) {
+  await api.delete(`/categorias/${id}`);
+}
