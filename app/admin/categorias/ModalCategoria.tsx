@@ -1,35 +1,27 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import FormCategoria from './FormCategoria';
-import { Categoria } from '@/types/categoria';
+import type { CategoriaSchema } from '@/types/categoria';
 
-interface Props {
+interface ModalCategoriaProps {
   open: boolean;
   onClose: () => void;
-  fetchCategorias: () => void;
-  categoriaToEdit?: Categoria | null;
+  onSave: (data: CategoriaSchema) => void;
+  categoria?: CategoriaSchema | null;
 }
 
-export default function ModalCategoria({ open, onClose, fetchCategorias, categoriaToEdit }: Props) {
+export default function ModalCategoria({ open, onClose, onSave, categoria }: ModalCategoriaProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {categoriaToEdit ? 'Editar Categoría' : 'Nueva Categoría'}
-          </DialogTitle>
+          <DialogTitle>{categoria ? 'Editar Categoría' : 'Nueva Categoría'}</DialogTitle>
         </DialogHeader>
-
         <FormCategoria
-          initialData={categoriaToEdit || undefined}
-          onSuccess={() => {
-            fetchCategorias();
+          defaultValues={categoria || {}}
+          onSubmit={(data) => {
+            onSave(data);
             onClose();
           }}
         />

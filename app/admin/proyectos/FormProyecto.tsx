@@ -13,10 +13,10 @@ import { proyectoSchema, ProyectoSchema, NIVEL_VALUES, Nivel } from '@/types/pro
 import { Categoria } from '@/types/categoria'; // crea este tipo si no existe
 import { getCategorias } from '@/services/categoriasService';
 import {
-  createProyectoJson,
   createProyectoForm,
-  updateProyectoJson,
+  createProyectoJson,
   updateProyectoForm,
+  updateProyectoJson
 } from '@/services/proyectoService';
 import { toast } from 'sonner';
 

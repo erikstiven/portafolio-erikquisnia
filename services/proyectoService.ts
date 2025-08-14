@@ -1,59 +1,77 @@
-import axios from 'axios';
+import api from '@/lib/api';
 import type { Proyecto, ProyectoSchema } from '@/types/proyecto';
 
-const API_BASE = '/api/proyectos';
+/**
+ * Sube un archivo a Cloudinary y devuelve la URL segura
+ */
+async function uploadToCloudinary(file: File): Promise<string> {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
-// Obtiene todos los proyectos
-export async function getProyectos(): Promise<Proyecto[]> {
-  const res = await axios.get<{ items: Proyecto[] }>(API_BASE);
-  return res.data.items;
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', uploadPreset);
+
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error('Error al subir la imagen a Cloudinary');
+  }
+
+  const data = await res.json();
+  return data.secure_url;
 }
 
-// Crea proyecto con JSON (sin imagen)
-export async function createProyectoJson(data: ProyectoSchema): Promise<Proyecto> {
-  const res = await axios.post<Proyecto>(API_BASE, data);
-  return res.data;
-}
-
-// Crea proyecto con FormData (con imagen)
+/**
+ * Crear proyecto enviando archivo a Cloudinary
+ */
 export async function createProyectoForm(data: ProyectoSchema, file: File): Promise<Proyecto> {
-  const formData = new FormData();
-  formData.append('titulo', data.titulo);
-  formData.append('descripcion', data.descripcion);
-  formData.append('tecnologias', data.tecnologias);
-  formData.append('categoriaId', data.categoriaId?.toString() || '');
-  formData.append('destacado', data.destacado ? 'true' : 'false');
-  formData.append('nivel', data.nivel || '');
-  formData.append('demoUrl', data.demoUrl || '');
-  formData.append('githubUrl', data.githubUrl || '');
-  formData.append('imagen', file);
-  const res = await axios.post<Proyecto>(`${API_BASE}/form`, formData);
-  return res.data;
+  const imageUrl = await uploadToCloudinary(file);
+  const payload: ProyectoSchema = { ...data, imagenUrl: imageUrl };
+  const { data: res } = await api.post<Proyecto>('/proyectos', payload);
+  return res;
 }
 
-// Actualiza proyecto con JSON (sin imagen)
-export async function updateProyectoJson(id: number, data: ProyectoSchema): Promise<Proyecto> {
-  const res = await axios.put<Proyecto>(`${API_BASE}/${id}`, data);
-  return res.data;
+/**
+ * Crear proyecto solo con datos JSON
+ */
+export async function createProyectoJson(data: ProyectoSchema): Promise<Proyecto> {
+  const { data: res } = await api.post<Proyecto>('/proyectos', data);
+  return res;
 }
 
-// Actualiza proyecto con FormData (con imagen)
+/**
+ * Actualizar proyecto enviando archivo a Cloudinary
+ */
 export async function updateProyectoForm(id: number, data: ProyectoSchema, file: File): Promise<Proyecto> {
-  const formData = new FormData();
-  formData.append('titulo', data.titulo);
-  formData.append('descripcion', data.descripcion);
-  formData.append('tecnologias', data.tecnologias);
-  formData.append('categoriaId', data.categoriaId?.toString() || '');
-  formData.append('destacado', data.destacado ? 'true' : 'false');
-  formData.append('nivel', data.nivel || '');
-  formData.append('demoUrl', data.demoUrl || '');
-  formData.append('githubUrl', data.githubUrl || '');
-  formData.append('imagen', file);
-  const res = await axios.put<Proyecto>(`${API_BASE}/form/${id}`, formData);
-  return res.data;
+  const imageUrl = await uploadToCloudinary(file);
+  const payload: ProyectoSchema = { ...data, imagenUrl: imageUrl };
+  const { data: res } = await api.put<Proyecto>(`/proyectos/${id}`, payload);
+  return res;
 }
 
-// Elimina un proyecto
+/**
+ * Actualizar proyecto solo con datos JSON
+ */
+export async function updateProyectoJson(id: number, data: ProyectoSchema): Promise<Proyecto> {
+  const { data: res } = await api.put<Proyecto>(`/proyectos/${id}`, data);
+  return res;
+}
+
+/**
+ * Listar proyectos
+ */
+export async function getProyectos(): Promise<Proyecto[]> {
+  const { data } = await api.get<{ items: Proyecto[] }>('/proyectos');
+  return data.items;
+}
+
+/**
+ * Eliminar proyecto
+ */
 export async function deleteProyecto(id: number): Promise<void> {
-  await axios.delete(`${API_BASE}/${id}`);
+  await api.delete(`/proyectos/${id}`);
 }

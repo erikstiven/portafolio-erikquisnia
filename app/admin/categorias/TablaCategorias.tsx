@@ -1,23 +1,30 @@
 'use client';
 
 import TablaCrud from '@/components/ui/TablaCrud';
+import type { Categoria } from '@/types/categoria';
 import { columnasCategoria } from './columns';
-import { Categoria } from '@/types/categoria';
 
 interface Props {
   categorias: Categoria[];
-  onEdit: (cat: Categoria) => void;
+  loading?: boolean;
+  onEdit: (categoria: Categoria) => void;
   onDelete: (id: number) => void;
 }
 
-export default function TablaCategorias({ categorias, onEdit, onDelete }: Props) {
+export default function TablaCategorias({
+  categorias,
+  loading = false,
+  onEdit,
+  onDelete
+}: Props) {
   return (
     <TablaCrud
       data={categorias}
       columns={columnasCategoria}
       onEdit={onEdit}
       onDelete={onDelete}
-      getId={(cat) => cat.id}
+      getId={(categoria) => categoria.id}
+      loading={loading}
     />
   );
 }

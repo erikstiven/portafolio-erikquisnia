@@ -5,18 +5,17 @@ import { useEffect, useState } from 'react';
 import { getProyectos } from '@/services/proyectoService';
 import type { Proyecto } from '@/types/proyecto';
 
-export function useProyectos(params?: { page?: number; pageSize?: number }) {
+export function useProyectos() {
   const [data, setData] = useState<Proyecto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
   
-
   useEffect(() => {
     let alive = true;
     (async () => {
       setLoading(true);
       try {
-        const items = await getProyectos(params); // ← ya retorna Proyecto[]
+        const items = await getProyectos();
         if (alive) setData(items);
       } catch (e) {
         if (alive) {
@@ -28,7 +27,7 @@ export function useProyectos(params?: { page?: number; pageSize?: number }) {
       }
     })();
     return () => { alive = false; };
-  }, [params?.page, params?.pageSize]);
+  }, []);
 
   return { proyectos: data, loading, error };
 }

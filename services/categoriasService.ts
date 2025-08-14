@@ -1,7 +1,12 @@
 import api from '@/lib/api';
-import type { Categoria, CategoriaSchema } from '@/types/categoria';
 
-export type ApiPage<T> = {
+import type { Categoria, CategoriaSchema } from '@/types/categoria';
+export type Categoria = {
+  id: number;
+  nombre: string;
+};
+
+export type ApiResponse<T> = {
   items: T[];
   page: number;
   pageSize: number;
@@ -9,37 +14,15 @@ export type ApiPage<T> = {
   totalPages: number;
 };
 
-// Listado solo como array
-export async function getCategorias(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
-  const { data } = await api.get<ApiPage<Categoria>>('/categorias', { params });
-  return data.items;
-}
+export async function getCategorias(): Promise<Categoria[]> {
+  const res = await fetch('http://localhost:4000/api/categorias', {
+    cache: 'no-store', // evita cache SSR
+  });
 
-// Página completa
-export async function getCategoriasPage(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
-  const { data } = await api.get<ApiPage<Categoria>>('/categorias', { params });
-  return data;
-}
+  if (!res.ok) {
+    throw new Error('Error al obtener categorías');
+  }
 
-// Contador
-export async function getCategoriasCount() {
-  const { data } = await api.get<ApiPage<Categoria>>('/categorias', { params: { page: 1, pageSize: 1 } });
-  return data.total ?? 0;
-}
-
-// Crear
-export async function createCategoria(payload: CategoriaSchema) {
-  const { data } = await api.post<Categoria>('/categorias', { ...payload, activo: true });
-  return data;
-}
-
-// Actualizar
-export async function updateCategoria(id: number | string, payload: CategoriaSchema) {
-  const { data } = await api.put<Categoria>(`/categorias/${id}`, payload);
-  return data;
-}
-
-// Eliminar
-export async function deleteCategoria(id: number | string) {
-  await api.delete<void>(`/categorias/${id}`);
+  const data: ApiResponse<Categoria> = await res.json();
+  return data.items; // devolvemos solo el array
 }
