@@ -2,18 +2,17 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // lista de dominios remotos desde los que se permite cargar imágenes
-    domains: ["res.cloudinary.com"],
-    // opcional: si quieres ser más explícito en los patrones permitidos
-    // remotePatterns: [
-    //   {
-    //     protocol: "https",
-    //     hostname: "res.cloudinary.com",
-    //     pathname: "/**",
-    //   },
-    // ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '**',
+      },
+    ],
+    formats: ["image/avif", "image/webp"],
   },
-  // …otras opciones de configuración que tengas
+  // appDir ya está habilitado por defecto en versiones recientes
+  // Puedes omitirlo si no necesitas desactivarlo
 };
 
 export default nextConfig;

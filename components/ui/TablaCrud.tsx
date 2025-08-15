@@ -2,14 +2,16 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Tipos para las columnas
 export interface ColumnaCrud<T> {
   key: keyof T | string;
   label: string;
   render?: (item: T) => React.ReactNode;
   className?: string;
-  hideOnMobile?: boolean;
+  hideOnMobile?: boolean; // si true, se oculta en móvil
 }
 
+// Tipos para las propiedades de TablaCrud
 interface TablaCrudProps<T> {
   data: T[];
   columns: ColumnaCrud<T>[];
@@ -43,8 +45,14 @@ export default function TablaCrud<T>({
   const hasActions = Boolean(onEdit || onDelete);
   const colCount = columns.length + (hasActions ? 1 : 0);
 
+  // Columnas a mostrar en móvil (si no hay ninguna visible, usa la primera como fallback)
+  const mobileColumnsBase = columns.filter((c) => !c.hideOnMobile);
+  const mobileColumns = mobileColumnsBase.length > 0 ? mobileColumnsBase : columns.slice(0, 1);
+
   return (
     <div className="rounded-2xl shadow-xl border border-gray-200 w-full max-w-6xl mx-auto bg-gradient-to-br from-white via-slate-50 to-white overflow-hidden">
+
+      {/* =================== DESKTOP (md+) - TABLA =================== */}
       <table className="min-w-full table-auto text-sm bg-transparent hidden md:table">
         <thead className="bg-gray-100/80 text-gray-700">
           <tr>
@@ -64,7 +72,7 @@ export default function TablaCrud<T>({
           {loading ? (
             Array.from({ length: skeletonRows }).map((_, i) => (
               <tr key={`sk-${i}`} className="border-b last:border-b-0">
-                {columns.map((col, idx) => (
+                {columns.map((col) => (
                   <td key={`${i}-${col.key as string}`} className={`px-4 py-4 ${col.hideOnMobile ? 'hidden md:table-cell' : ''}`}>
                     <Skeleton className="h-5 w-full" />
                   </td>
@@ -81,17 +89,20 @@ export default function TablaCrud<T>({
             ))
           ) : rows.length === 0 ? (
             <tr>
-              <td colSpan={colCount} className="px-6 py-8 text-center text-gray-400 text-lg whitespace-normal break-all">
+              <td colSpan={colCount} className="px-6 py-8 text-center text-gray-400 text-lg whitespace-normal break-words">
                 No hay datos registrados
               </td>
             </tr>
           ) : (
             rows.map((item) => (
-              <tr key={getId(item)} className="even:bg-white odd:bg-gray-50 hover:bg-blue-50 hover:shadow transition-all duration-150 border-b last:border-b-0">
+              <tr
+                key={getId(item)}
+                className="even:bg-white odd:bg-gray-50 hover:bg-blue-50 hover:shadow transition-all duration-150 border-b last:border-b-0"
+              >
                 {columns.map((col) => (
                   <td
                     key={col.key as string}
-                    className={`px-4 py-4 align-middle whitespace-normal break-all ${col.hideOnMobile ? 'hidden md:table-cell' : ''}`}
+                    className={`px-4 py-4 align-middle whitespace-normal break-words ${col.hideOnMobile ? 'hidden md:table-cell' : ''} ${col.className ?? ''}`}
                   >
                     {col.render ? col.render(item) : (item as any)[col.key]}
                   </td>
@@ -129,67 +140,73 @@ export default function TablaCrud<T>({
         </tbody>
       </table>
 
-      {/* MOBILE (cards) */}
-      <div className="flex flex-col gap-4 md:hidden p-2">
+      {/* =================== MÓVIL (<md) - LISTA/CARDS =================== */}
+      <div className="md:hidden">
         {loading ? (
-          Array.from({ length: skeletonRows }).map((_, i) => (
-            <div key={`skm-${i}`} className="bg-white rounded-xl shadow border p-4 flex flex-col gap-2">
-              {columns.map((_, idx) => (
-                <div key={idx} className="flex items-start">
-                  <Skeleton className="h-4 w-24 mr-3" />
-                  <Skeleton className="h-4 w-40 flex-1" />
+          <ul className="divide-y divide-gray-200">
+            {Array.from({ length: skeletonRows }).map((_, i) => (
+              <li key={`msk-${i}`} className="p-4">
+                <div className="space-y-2">
+                  {mobileColumns.map((_, idx) => (
+                    <Skeleton key={idx} className="h-4 w-3/4" />
+                  ))}
                 </div>
-              ))}
-              {hasActions && (
-                <div className="flex gap-2 mt-2">
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-8 w-full" />
-                </div>
-              )}
-            </div>
-          ))
+                {hasActions && (
+                  <div className="mt-3 flex gap-2">
+                    <Skeleton className="h-8 w-full" />
+                    {onDelete && <Skeleton className="h-8 w-full" />}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
         ) : rows.length === 0 ? (
-          <div className="w-full py-10 text-center text-gray-400 text-base border rounded-lg bg-white whitespace-normal break-all">
+          <div className="px-4 py-8 text-center text-gray-400 text-base">
             No hay datos registrados
           </div>
         ) : (
-          rows.map((item) => (
-            <div key={getId(item)} className="bg-white rounded-xl shadow border p-4 flex flex-col gap-2">
-              {columns.map((col) => (
-                <div key={col.key as string} className="flex items-start">
-                  <span className="font-semibold w-32 text-gray-600">{col.label}:</span>
-                  <div className="flex-1 whitespace-normal break-all">
-                    {col.render ? col.render(item) : (item as any)[col.key]}
+          <ul className="divide-y divide-gray-200">
+            {rows.map((item) => (
+              <li key={getId(item)} className="p-4 bg-white">
+                <div className="space-y-2">
+                  {mobileColumns.map((col) => (
+                    <div key={col.key as string} className="flex items-start gap-2">
+                      <span className="text-xs text-gray-500 w-28 shrink-0">{col.label}</span>
+                      <div className={`text-sm text-gray-900 break-words flex-1 ${col.className ?? ''}`}>
+                        {col.render ? col.render(item) : (item as any)[col.key]}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {hasActions && (
+                  <div className="mt-3 flex gap-2">
+                    {onEdit && (
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-black hover:bg-gray-800 text-white"
+                        onClick={() => onEdit(item)}
+                        disabled={loading}
+                      >
+                        Editar
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="flex-1"
+                        onClick={() => onDelete(getId(item))}
+                        disabled={loading}
+                      >
+                        Eliminar
+                      </Button>
+                    )}
                   </div>
-                </div>
-              ))}
-              {hasActions && (
-                <div className="flex gap-2 mt-2">
-                  {onEdit && (
-                    <Button
-                      size="sm"
-                      className="bg-black hover:bg-gray-800 text-white flex-1 min-w-[80px]"
-                      onClick={() => onEdit(item)}
-                      disabled={loading}
-                    >
-                      Editar
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="flex-1 min-w-[80px]"
-                      onClick={() => onDelete(getId(item))}
-                      disabled={loading}
-                    >
-                      Eliminar
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          ))
+                )}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>

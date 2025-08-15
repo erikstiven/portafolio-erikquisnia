@@ -7,7 +7,7 @@ import type { Nivel } from '@/types/proyecto';
 interface ProjectCardProps {
   titulo: string;
   descripcion: string;
-  tecnologias: string;
+  tecnologias: string | string[] | null | undefined;
   imagenUrl?: string | null;
   demoUrl?: string | null;
   githubUrl?: string | null;
@@ -28,12 +28,18 @@ export default function ProjectCard({
   tipo = '',
 }: ProjectCardProps) {
   // normaliza para evitar pasar null a atributos string
-  const img = imagenUrl ?? undefined;
-  const demo = demoUrl ?? undefined;
-  const repo = githubUrl ?? undefined;
+  const img = (imagenUrl && imagenUrl.trim()) || undefined;
+  const demo = (demoUrl && demoUrl.trim()) || undefined;
+  const repo = (githubUrl && githubUrl.trim()) || undefined;
   const level = nivel ?? undefined;
 
-  const tags = tecnologias.split(',').map(t => t.trim()).filter(Boolean);
+  // tecnologias robusto: acepta string | string[] | null
+  const techStr =
+    Array.isArray(tecnologias) ? tecnologias.join(',') : (tecnologias ?? '');
+  const tags = techStr
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean);
   const extra = Math.max(0, tags.length - 3);
 
   return (
@@ -48,7 +54,6 @@ export default function ProjectCard({
             className="rounded-xl w-[90%] h-36 object-cover mx-auto mt-4 shadow-md group-hover:scale-105 transition"
           />
         ) : (
-          // Placeholder si no hay imagen
           <div className="rounded-xl w-[90%] h-36 mx-auto mt-4 shadow-md bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
             Sin imagen
           </div>
@@ -65,7 +70,7 @@ export default function ProjectCard({
         <div className="absolute top-2 right-2 flex items-center gap-2">
           {level && (
             <span className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full shadow-sm">
-              {level}
+              {String(level)}
             </span>
           )}
           {destacado && (
@@ -84,18 +89,26 @@ export default function ProjectCard({
         {/* Tecnologías */}
         <div className="md:hidden flex items-center gap-2 mb-4 min-h-[28px] overflow-hidden">
           {tags.slice(0, 3).map((tech) => (
-            <span key={`m-${tech}`} className="text-xs border text-white px-2 py-1 rounded-sm font-semibold whitespace-nowrap">
+            <span
+              key={`m-${tech}`}
+              className="text-xs border text-white px-2 py-1 rounded-sm font-semibold whitespace-nowrap"
+            >
               {tech}
             </span>
           ))}
           {extra > 0 && (
-            <span className="text-xs border text-white/80 px-2 py-1 rounded-sm font-semibold">+{extra}</span>
+            <span className="text-xs border text-white/80 px-2 py-1 rounded-sm font-semibold">
+              +{extra}
+            </span>
           )}
         </div>
 
         <div className="hidden md:flex flex-wrap gap-2 mb-4">
           {tags.map((tech) => (
-            <span key={`d-${tech}`} className="text-xs border text-white px-2 py-1 rounded-sm font-semibold">
+            <span
+              key={`d-${tech}`}
+              className="text-xs border text-white px-2 py-1 rounded-sm font-semibold"
+            >
               {tech}
             </span>
           ))}

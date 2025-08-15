@@ -63,7 +63,7 @@ export default function PageCategorias() {
         </Button>
       </div>
 
-      <div className="bg-white rounded shadow overflow-x-auto">
+      <div>
         <TablaCategorias
           categorias={categorias}
           loading={loading}

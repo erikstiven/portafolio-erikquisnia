@@ -3,8 +3,10 @@
 
 import { useMemo, useState, useEffect, type ReactNode } from 'react';
 import ProjectCard from './ProjectCard';
-import type { Proyecto, Categoria } from '@/types/proyecto';
+import type { Proyecto } from '@/types/proyecto';
 import CarouselGrid from './CarouselGrid';
+
+type CategoriaLite = { id: number; nombre: string };
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -18,9 +20,15 @@ function useIsMobile() {
   return isMobile;
 }
 
+// normaliza a number (soporta "1" o 1)
+const toNum = (v: unknown) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : NaN;
+};
+
 interface Props {
-  proyectos: Proyecto[] | { items?: Proyecto[] } | unknown; // puede venir paginado
-  categorias: Categoria[] | unknown;
+  proyectos: Proyecto[] | { items?: Proyecto[] } | unknown;
+  categorias?: CategoriaLite[] | unknown;
 }
 
 export default function SeccionProyectos({ proyectos, categorias }: Props) {
@@ -28,16 +36,31 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | null>(null);
   const [tocado, setTocado] = useState(false);
 
-  // 🔒 Normaliza entradas a arrays seguros
+  // 1) Normaliza proyectos a array
   const proyectosArr: Proyecto[] = Array.isArray(proyectos)
     ? proyectos
     : (proyectos as any)?.items && Array.isArray((proyectos as any).items)
     ? (proyectos as any).items
     : [];
 
-  const categoriasArr: Categoria[] = Array.isArray(categorias) ? categorias : [];
+  // 2) Normaliza categorías: usa las que llegan o constrúyelas desde proyectos
+  const categoriasArr: CategoriaLite[] = useMemo(() => {
+    if (Array.isArray(categorias) && categorias.length) {
+      return (categorias as CategoriaLite[]).map((c) => ({ id: toNum(c.id), nombre: c.nombre }));
+    }
+    // fallback desde proyectos
+    const map = new Map<number, string>();
+    for (const p of proyectosArr) {
+      const id = toNum((p as any).categoriaId);
+      if (!Number.isNaN(id)) {
+        const nombre = (p as any).categoriaNombre || (p as any).categoria?.nombre || `Cat ${id}`;
+        if (!map.has(id)) map.set(id, String(nombre));
+      }
+    }
+    return Array.from(map.entries()).map(([id, nombre]) => ({ id, nombre }));
+  }, [categorias, proyectosArr]);
 
-  // Al cargar, seleccionar ⭐ si hay destacados
+  // 3) Selección inicial: ⭐ si hay destacados
   useEffect(() => {
     if (!tocado && proyectosArr.length > 0) {
       if (proyectosArr.some((p) => p.destacado)) setCategoriaSeleccionada(-1);
@@ -50,32 +73,35 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
     setCategoriaSeleccionada(val);
   };
 
-  // contadores por categoría
-  const counts = useMemo(() => {
-    const acc: Record<number, number> = {};
-    for (const c of categoriasArr) acc[c.id] = 0;
-    for (const p of proyectosArr) {
-      const key = Number((p as any).categoriaId);
-      if (!Number.isNaN(key)) acc[key] = (acc[key] ?? 0) + 1;
-    }
-    return acc;
-  }, [proyectosArr, categoriasArr]);
-
+  // 4) Contadores
   const destacadosCount = useMemo(
     () => proyectosArr.filter((p) => p.destacado).length,
     [proyectosArr]
   );
 
+  const counts = useMemo(() => {
+    const acc: Record<number, number> = {};
+    for (const c of categoriasArr) acc[c.id] = 0;
+    for (const p of proyectosArr) {
+      const key = toNum((p as any).categoriaId);
+      if (!Number.isNaN(key)) acc[key] = (acc[key] ?? 0) + 1;
+    }
+    return acc;
+  }, [proyectosArr, categoriasArr]);
+
+  // 5) Filtrado según botón
   const proyectosFiltrados = useMemo(() => {
     if (categoriaSeleccionada === -1) {
       const dest = proyectosArr.filter((p) => p.destacado);
       return dest.length ? dest : proyectosArr;
     }
     if (categoriaSeleccionada == null) return proyectosArr;
-    return proyectosArr.filter((p) => p.categoriaId === categoriaSeleccionada);
+    return proyectosArr.filter(
+      (p) => toNum((p as any).categoriaId) === toNum(categoriaSeleccionada)
+    );
   }, [proyectosArr, categoriaSeleccionada]);
 
-  // slides desktop (3×2 = 6 por slide)
+  // 6) Slides desktop (3×2 = 6 por slide)
   const slides: ReactNode[][] = useMemo(() => {
     if (isMobile) return [[]];
     const PAGE_SIZE = 6;
@@ -87,12 +113,14 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
           titulo={proy.titulo}
           descripcion={proy.descripcion}
           imagenUrl={proy.imagenUrl}
-          tecnologias={proy.tecnologias}
+          tecnologias={(proy as any).tecnologias}
           demoUrl={proy.demoUrl}
           githubUrl={proy.githubUrl}
           destacado={proy.destacado}
           nivel={proy.nivel}
-          tipo={categoriasArr.find((c) => c.id === proy.categoriaId)?.nombre ?? ''}
+          tipo={
+            categoriasArr.find((c) => c.id === toNum((proy as any).categoriaId))?.nombre ?? ''
+          }
         />
       ));
       out.push(slice);
@@ -100,14 +128,18 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
     return out.length ? out : [[]];
   }, [isMobile, proyectosFiltrados, categoriasArr]);
 
+  const Empty = (
+    <div className="py-8 text-center text-gray-500">
+      No hay proyectos para esta selección.
+    </div>
+  );
+
   return (
     <section id="proyectos" className="pt-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
-        <h2 className="text-4xl font-bold mb-2 text-left md:text-left">Proyectos</h2>
+        <h2 className="text-5xl font-bold mb-2 text-left md:text-left">Proyectos</h2>
 
-        {/* ... (tu texto descriptivo) ... */}
-
-        {/* filtros */}
+        {/* Filtros */}
         <div className="flex justify-center">
           <div className="flex gap-3 mb-8 overflow-x-auto sm:overflow-visible py-2 px-1 sm:px-0 scrollbar-thin scrollbar-thumb-purple-400 scrollbar-track-transparent">
             <button
@@ -151,25 +183,39 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
           </div>
         </div>
 
-        {/* MOBILE */}
+        {/* Contenido */}
+        {proyectosArr.length === 0 && Empty}
+
         {isMobile ? (
-          <div className="-mx-4 px-4 flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-purple-400" style={{ WebkitOverflowScrolling: 'touch' }}>
-            {proyectosFiltrados.map((proy) => (
-              <div key={proy.id} className="snap-center shrink-0 w-[100%]">
-                <ProjectCard
-                  titulo={proy.titulo}
-                  descripcion={proy.descripcion}
-                  imagenUrl={proy.imagenUrl}
-                  tecnologias={proy.tecnologias}
-                  demoUrl={proy.demoUrl}
-                  githubUrl={proy.githubUrl}
-                  destacado={proy.destacado}
-                  nivel={proy.nivel}
-                  tipo={categoriasArr.find((c) => c.id === proy.categoriaId)?.nombre ?? ''}
-                />
-              </div>
-            ))}
-          </div>
+          proyectosFiltrados.length === 0 ? (
+            Empty
+          ) : (
+            <div
+              className="-mx-4 px-4 flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-purple-400"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              {proyectosFiltrados.map((proy) => (
+                <div key={proy.id} className="snap-center shrink-0 w-[100%]">
+                  <ProjectCard
+                    titulo={proy.titulo}
+                    descripcion={proy.descripcion}
+                    imagenUrl={proy.imagenUrl}
+                    tecnologias={(proy as any).tecnologias}
+                    demoUrl={proy.demoUrl}
+                    githubUrl={proy.githubUrl}
+                    destacado={proy.destacado}
+                    nivel={proy.nivel}
+                    tipo={
+                      categoriasArr.find((c) => c.id === toNum((proy as any).categoriaId))?.nombre ??
+                      ''
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          )
+        ) : proyectosFiltrados.length === 0 ? (
+          Empty
         ) : (
           <CarouselGrid slides={slides} />
         )}

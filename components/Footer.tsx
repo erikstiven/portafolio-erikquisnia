@@ -1,15 +1,19 @@
 // components/Footer.tsx
 'use client';
-
 import Link from 'next/link';
-import { useRedes } from '@/hooks/useRedes';
-import type { RedSocial } from '@/types/redSocial';
-
+import { useEffect, useState } from 'react';
+import { useRedes } from '../hooks/useRedes';
+import api from '../lib/api';
+import type { RedSocial } from '../types/redSocial';
 import {
   FaGithub, FaLinkedin, FaTwitter, FaInstagram, FaFacebook, FaYoutube,
   FaWhatsapp, FaBehance, FaDribbble, FaMedium, FaLink,
 } from 'react-icons/fa';
 import { FaTiktok, FaThreads, FaTelegram, FaDiscord } from 'react-icons/fa6';
+
+type Perfil = {
+  nombreCompleto?: string | null;
+};
 
 function pickIconByKey(key: string) {
   const k = key.toLowerCase();
@@ -39,11 +43,9 @@ function pickIconByKey(key: string) {
 
 function pickIconFrom(r: RedSocial) {
   if (r.icono) return pickIconByKey(r.icono);
-
   const n = (r.nombre ?? '').toLowerCase();
   const u = (r.url ?? '').toLowerCase();
   const has = (...keys: string[]) => keys.some(k => n.includes(k) || u.includes(k));
-
   if (has('github')) return FaGithub;
   if (has('linkedin')) return FaLinkedin;
   if (has('twitter', 'x.com')) return FaTwitter;
@@ -63,27 +65,56 @@ function pickIconFrom(r: RedSocial) {
 
 export default function Footer() {
   const { redes, loading } = useRedes();
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [perfilLoading, setPerfilLoading] = useState(true);
   const year = new Date().getFullYear();
+
+  // Cargar Perfil - igual que en SeccionHero
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        setPerfilLoading(true);
+        const { data } = await api.get<Perfil | Perfil[]>('/perfil');
+        const p = Array.isArray(data) ? data[0] : data;
+        if (alive) setPerfil(p ?? null);
+      } catch {
+        if (alive) setPerfil(null);
+      } finally {
+        if (alive) setPerfilLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
 
   return (
     <footer className="bg-gray-950 text-gray-300 border-t border-white/10">
       {/* línea superior gradiente (visible) */}
       <div className="h-[6px] w-full bg-gradient-to-r " />
-
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12 sm:py-14 lg:py-16">
         {/* TOP: 3 columnas responsivas con más respiro */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14">
           {/* Col 1: copy */}
           <div className="space-y-3">
-            <h3 className="text-white text-lg sm:text-xl font-semibold">Erik Quisnia</h3>
+            {perfilLoading ? (
+              <div className="h-6 w-32 bg-white/10 animate-pulse rounded" />
+            ) : (
+              <h3 className="text-white text-lg sm:text-xl font-semibold">
+                {perfil?.nombreCompleto || 'Desarrollador'}
+              </h3>
+            )}
             <p className="text-gray-400 text-base leading-relaxed">
               © {year}. Todos los derechos reservados.
             </p>
           </div>
-
           {/* Col 2: enlaces internos — centrado en móvil */}
           <nav className="order-3 md:order-none">
             <ul className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 md:gap-y-4">
+                <li>
+                <Link href="#inicio" className="hover:text-white transition text-base">
+                  Inicio
+                </Link>
+              </li>
               <li>
                 <Link href="#proyectos" className="hover:text-white transition text-base">
                   Proyectos
@@ -104,11 +135,7 @@ export default function Footer() {
                   Tecnologías
                 </Link>
               </li>
-              <li>
-                <Link href="#inicio" className="hover:text-white transition text-base">
-                  Inicio
-                </Link>
-              </li>
+            
               <li>
                 <Link href="#contacto" className="hover:text-white transition text-base">
                   Contacto
@@ -116,7 +143,6 @@ export default function Footer() {
               </li>
             </ul>
           </nav>
-
           {/* Col 3: redes — más grandes y con wrap */}
           <div className="flex flex-wrap items-center justify-start md:justify-end gap-4 sm:gap-5">
             {loading
@@ -144,7 +170,6 @@ export default function Footer() {
                 })}
           </div>
         </div>
-
         {/* BOTTOM: línea y meta — stack en móvil, separados en desktop */}
         <div className="mt-12 border-t border-white/10 pt-8">
           <div className="flex flex-col lg:items-center items-start  justify-between gap-4">

@@ -22,7 +22,7 @@ async function uploadToCloudinary(file: File): Promise<string> {
   }
 
   const data = await res.json();
-  return data.secure_url;
+  return data.secure_url as string;
 }
 
 /**
@@ -62,11 +62,11 @@ export async function updateProyectoJson(id: number, data: ProyectoSchema): Prom
 }
 
 /**
- * Listar proyectos
+ * Listar proyectos (soporta array plano o {items:[]})
  */
 export async function getProyectos(): Promise<Proyecto[]> {
-  const { data } = await api.get<{ items: Proyecto[] }>('/proyectos');
-  return data.items;
+  const { data } = await api.get<Proyecto[] | { items: Proyecto[] }>('/proyectos');
+  return Array.isArray(data) ? data : (data.items ?? []);
 }
 
 /**

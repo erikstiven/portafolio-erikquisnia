@@ -70,9 +70,12 @@ export default function PageExperiencia() {
         </div>
       ) : (
         <TablaExperiencia
-          experiencias={experiencias}  // Pasamos directamente `experiencias`
+          experiencias={experiencias}
           onEdit={handleEditar}
           onDelete={handleEliminar}
+          total={experiencias.length} // o el total real si es paginado
+          onPageChange={(page) => console.log('Page changed:', page)} // manejar cambio de página
+          onPageSizeChange={(size) => console.log('Page size changed:', size)} // manejar cambio de tamaño de página
         />
       )}
 

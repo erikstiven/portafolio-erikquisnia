@@ -12,7 +12,8 @@ import {
   FaThList,
   FaBriefcase,
   FaBars,
-  FaTimes
+  FaTimes,
+  FaUserAlt, // Ícono para el botón de perfil
 } from 'react-icons/fa';
 
 const links = [
@@ -21,6 +22,7 @@ const links = [
   { href: '/admin/redes', label: 'Redes Sociales', icon: <FaShareAlt /> },
   { href: '/admin/categorias', label: 'Categorías', icon: <FaThList /> },
   { href: '/admin/experiencia', label: 'Experiencia', icon: <FaBriefcase /> },
+  { href: '/admin/perfil', label: 'Perfil', icon: <FaUserAlt /> }, // Enlace de perfil
 ];
 
 export default function Sidebar() {
@@ -28,15 +30,14 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Bloquea el scroll del body cuando el drawer está abierto
+  // Evita scroll en el body cuando el drawer está abierto
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
-      drawerRef.current?.focus(); // Enfoca el drawer para accesibilidad
+      drawerRef.current?.focus();
     } else {
       document.body.style.overflow = '';
     }
-
     return () => {
       document.body.style.overflow = '';
     };
@@ -51,6 +52,7 @@ export default function Sidebar() {
     return () => window.removeEventListener('keydown', handler);
   }, [open]);
 
+  // Contenido común de la barra lateral
   const sidebarContent = (
     <div className="flex flex-col h-full justify-between">
       <div className="p-6">
@@ -67,10 +69,12 @@ export default function Sidebar() {
                 href={link.href}
                 className={cn(
                   'flex items-center gap-3 px-4 py-2 rounded-md transition-all duration-200 group relative focus:outline-none focus:ring-2 focus:ring-white',
-                  isActive ? 'bg-white text-blue-900 font-semibold shadow' : 'hover:bg-white/10 hover:pl-5'
+                  isActive
+                    ? 'bg-white text-blue-900 font-semibold shadow'
+                    : 'hover:bg-white/10 hover:pl-5'
                 )}
                 tabIndex={0}
-                onClick={() => setOpen(false)} // Cierra el menú en móvil al navegar
+                onClick={() => setOpen(false)} // Cierra en móvil al navegar
               >
                 <span className="text-lg">{link.icon}</span>
                 <span className="truncate">{link.label}</span>
@@ -87,7 +91,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* --- Botón Hamburguesa (solo móvil) --- */}
+      {/* Botón Hamburguesa (solo móvil) */}
       <button
         className="fixed top-4 left-4 z-40 md:hidden bg-gradient-to-r from-purple-900 via-indigo-800 to-purple-700 text-white p-2 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-white"
         onClick={() => setOpen(true)}
@@ -97,37 +101,35 @@ export default function Sidebar() {
         <FaBars size={22} />
       </button>
 
-      {/* --- Sidebar fijo en desktop --- */}
+      {/* Sidebar fijo para escritorio */}
       <aside className="hidden md:flex flex-col w-64 bg-gradient-to-b from-purple-900 via-indigo-800 to-purple-700 text-white h-screen sticky top-0 shadow-lg z-30">
         {sidebarContent}
       </aside>
 
-      {/* --- Drawer + overlay para móvil --- */}
+      {/* Drawer + overlay para móvil */}
       <div
         ref={drawerRef}
         tabIndex={-1}
         className={cn(
-          "fixed inset-0 z-50 md:hidden transition-all duration-300",
-          open ? "visible" : "pointer-events-none"
+          'fixed inset-0 z-50 md:hidden transition-all duration-300',
+          open ? 'pointer-events-auto visible' : 'pointer-events-none invisible'
         )}
-        aria-hidden={!open} // Dejar el aria-hidden solo cuando el menú está cerrado
       >
         {/* Overlay oscuro */}
         <div
           className={cn(
-            "fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300",
-            open ? "opacity-100" : "opacity-0"
+            'fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300',
+            open ? 'opacity-100' : 'opacity-0'
           )}
           onClick={() => setOpen(false)}
         />
         {/* Drawer lateral animado */}
         <aside
           className={cn(
-            "fixed left-0 top-0 bottom-0 w-64 bg-gradient-to-b from-purple-900 via-indigo-800 to-purple-700 text-white flex flex-col justify-between shadow-2xl transform transition-transform duration-300 h-full",
-            open ? "translate-x-0" : "-translate-x-full"
+            'fixed left-0 top-0 bottom-0 w-64 bg-gradient-to-b from-purple-900 via-indigo-800 to-purple-700 text-white flex flex-col justify-between shadow-2xl transform transition-transform duration-300 h-full',
+            open ? 'translate-x-0' : '-translate-x-full'
           )}
           tabIndex={0}
-          aria-hidden={!open} // Asegúrate de que el menú se maneje correctamente
         >
           <button
             className="self-end m-4 p-2 text-white rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white"

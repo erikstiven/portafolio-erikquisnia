@@ -66,7 +66,7 @@ export default function PageProyectos() {
         </Button>
       </div>
 
-      <div className="bg-white rounded shadow overflow-x-auto">
+      <div>
         <TablaProyectos proyectos={proyectos} loading={loading} onEdit={handleEditar} onDelete={handleEliminar} />
       </div>
 
