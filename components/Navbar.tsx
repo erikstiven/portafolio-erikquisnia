@@ -140,7 +140,7 @@ export default function Navbar() {
   const elevated = scrolled ? 'shadow-md' : 'shadow-none';
 
   // Dinámicos desde Perfil / Redes
-  const logoText = (perfil?.inicialesLogo?.trim() || 'EQdev'); // fallback
+  const logoText = (perfil?.inicialesLogo?.trim() || 'Icon'); // fallback
   const phoneRaw = perfil?.telefono ?? '';
   const waPhone = toWhatsappPhone(phoneRaw);
   const telLink = telHref(phoneRaw);
