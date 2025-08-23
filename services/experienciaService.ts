@@ -25,13 +25,15 @@ export async function getExperienciasCount() {
 }
 
 export async function createExperiencia(payload: ExperienciaSchema) {
-  const { data } = await api.post<Experiencia>('/experiencias', { ...payload, activo: true });
-  return data;
+  const { data: res } = await api.post('/experiencias', { ...payload, activo: true });
+  // Adaptarse a una respuesta envuelta `{ data: experiencia }` o
+  // directamente el objeto de Experiencia.
+  return (res as any).data ?? res;
 }
 
 export async function updateExperiencia(id: number | string, payload: ExperienciaSchema) {
-  const { data } = await api.put<Experiencia>(`/experiencias/${id}`, payload);
-  return data;
+  const { data: res } = await api.put(`/experiencias/${id}`, payload);
+  return (res as any).data ?? res;
 }
 
 export async function deleteExperiencia(id: number | string) {

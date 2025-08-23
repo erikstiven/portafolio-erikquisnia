@@ -47,8 +47,9 @@ export async function createPerfil(data: PerfilFormValues): Promise<Perfil> {
 
   try {
     // ✅ NO forzar headers: Axios agrega el boundary correcto
-    const { data: res } = await api.post<Perfil>('/perfil', form);
-    return res;
+    const { data: res } = await api.post('/perfil', form);
+    // La API de Laravel puede envolver el objeto Perfil en `{ data: perfil }`.
+    return (res as any).data ?? res;
   } catch (err: any) {
     console.error(
       '[createPerfil] error',
@@ -75,8 +76,8 @@ export async function updatePerfil(data: PerfilFormValues): Promise<Perfil> {
 
   try {
     // ✅ SIN headers manuales
-    const { data: res } = await api.put<Perfil>('/perfil', form);
-    return res;
+    const { data: res } = await api.put('/perfil', form);
+    return (res as any).data ?? res;
   } catch (err: any) {
     console.error(
       '[updatePerfil] error',
@@ -96,8 +97,9 @@ export async function getPerfiles(): Promise<Perfil[]> {
 /** Obtener por id (si activas REST; en singleton no se usa) */
 export async function getPerfilById(id: number): Promise<Perfil | null> {
   try {
-    const { data } = await api.get<Perfil>(`/perfil/${id}`);
-    return data ?? null;
+    const { data: res } = await api.get(`/perfil/${id}`);
+    const perfil = (res as any).data ?? res;
+    return perfil ?? null;
   } catch {
     return null;
   }

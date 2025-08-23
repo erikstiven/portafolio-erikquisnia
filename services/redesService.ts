@@ -30,14 +30,15 @@ export async function getRedesCount() {
 
 // Crear
 export async function createRed(payload: RedSocialSchema) {
-  const { data } = await api.post<RedSocial>('/redes', { ...payload, activo: true });
-  return data;
+  const { data: res } = await api.post('/redes', { ...payload, activo: true });
+  // El backend Laravel puede devolver `{ data: red }`; soportamos ambos
+  return (res as any).data ?? res;
 }
 
 // Actualizar
 export async function updateRed(id: number | string, payload: RedSocialSchema) {
-  const { data } = await api.put<RedSocial>(`/redes/${id}`, payload);
-  return data;
+  const { data: res } = await api.put(`/redes/${id}`, payload);
+  return (res as any).data ?? res;
 }
 
 // Borrado lógico (el backend marca activo=false y responde 204)

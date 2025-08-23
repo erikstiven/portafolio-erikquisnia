@@ -4,9 +4,10 @@ import { useAuthStore } from '@/store/authStore';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL
-    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/,'')}/api`
-    : 'http://localhost:3001/api',
+    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/,'')}/api/v1`
+    : 'http://localhost:3001/api/v1',
 });
+
 // /lib/api.ts (debajo del create)
 console.log('[api] baseURL =', api.defaults.baseURL);
 

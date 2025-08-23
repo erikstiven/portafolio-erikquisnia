@@ -18,13 +18,14 @@ export async function getCategoriasCount() {
 }
 
 export async function createCategoria(nombre: string) {
-  const { data } = await api.post('/categorias', { nombre });
-  return data;
+  const { data: res } = await api.post('/categorias', { nombre });
+  // La API de Laravel puede envolver el recurso creado en `{ data: ... }`
+  return (res as any).data ?? res;
 }
 
 export async function updateCategoria(id: number, nombre: string) {
-  const { data } = await api.put(`/categorias/${id}`, { nombre });
-  return data;
+  const { data: res } = await api.put(`/categorias/${id}`, { nombre });
+  return (res as any).data ?? res;
 }
 
 export async function deleteCategoria(id: number) {
