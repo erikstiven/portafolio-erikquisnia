@@ -8,10 +8,6 @@ export const columnasCategoria: ColumnaCrud<Categoria>[] = [
   {
     key: 'nombre',
     label: 'Nombre',
-  },
-  {
-    key: 'categoria',
-    label: 'Categoría',
-    render: (categoria) => categoria.nombre ?? '',
+    className: 'max-w-[250px] truncate', 
   },
 ];

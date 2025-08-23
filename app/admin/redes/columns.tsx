@@ -14,7 +14,11 @@ export const columnasRed: ColumnaCrud<RedSocial>[] = [
       ),
     className: 'text-center w-20',
   },
-  { key: 'nombre', label: 'Nombre' },
+  {
+    key: 'nombre',
+    label: 'Nombre',
+    className: 'max-w-[200px] truncate',
+  },
   {
     key: 'url',
     label: 'URL',
@@ -23,11 +27,11 @@ export const columnasRed: ColumnaCrud<RedSocial>[] = [
         href={red.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 underline break-all hover:text-blue-800 transition"
+        className="text-black underline transition block truncate"
       >
         {red.url}
       </a>
     ),
-    className: 'max-w-[200px] break-all',
+    className: 'max-w-[250px] truncate',
   },
 ];

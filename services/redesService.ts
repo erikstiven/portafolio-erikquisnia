@@ -1,47 +1,35 @@
-// services/redesService.ts
 import api from '@/lib/api';
 import type { RedSocial, RedSocialSchema } from '@/types/redSocial';
 
-export type ApiPage<T> = {
-  items: T[];
-  page: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
-};
-
-// -- Listado: la UI solo trabaja con arrays
-export async function getRedes(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
-  const { data } = await api.get<ApiPage<RedSocial>>('/redes', { params });
-  return data.items; // ⬅️ siempre devolvemos array
+// 🔹 Normaliza array (soporta { items:[] }, { data:[] } o [])
+function normalizeArray(res: any): RedSocial[] {
+  if (Array.isArray(res)) return res;
+  if (res?.items) return res.items;
+  if (Array.isArray(res?.data)) return res.data;
+  if (res?.data?.items) return res.data.items;
+  return [];
 }
 
-// -- Si alguna vista necesita la página completa (paginación, total, etc.)
-export async function getRedesPage(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
-  const { data } = await api.get<ApiPage<RedSocial>>('/redes', { params });
-  return data; // { items, page, pageSize, total, totalPages }
+// 🔹 Listar
+export async function getRedes(params?: { page?: number; pageSize?: number }) {
+  const { data } = await api.get('/redes', { params });
+  return normalizeArray(data);
 }
 
-// -- Útil para el dashboard (contadores) sin traer toda la lista
-export async function getRedesCount() {
-  const { data } = await api.get<ApiPage<RedSocial>>('/redes', { params: { page: 1, pageSize: 1 } });
-  return data.total ?? 0;
-}
-
-// Crear
+// 🔹 Crear
 export async function createRed(payload: RedSocialSchema) {
-  const { data: res } = await api.post('/redes', { ...payload, activo: true });
-  // El backend Laravel puede devolver `{ data: red }`; soportamos ambos
+  const { data: res } = await api.post('/redes', payload);
   return (res as any).data ?? res;
 }
 
-// Actualizar
-export async function updateRed(id: number | string, payload: RedSocialSchema) {
+// 🔹 Actualizar
+export async function updateRed(id: number, payload: RedSocialSchema) {
   const { data: res } = await api.put(`/redes/${id}`, payload);
   return (res as any).data ?? res;
 }
 
-// Borrado lógico (el backend marca activo=false y responde 204)
-export async function deleteRed(id: number | string) {
-  await api.delete<void>(`/redes/${id}`);
+// 🔹 Eliminar
+export async function deleteRed(id: number) {
+  await api.delete(`/redes/${id}`);
+  return true; // 👈 devolvemos algo para poder manejar estado en frontend
 }

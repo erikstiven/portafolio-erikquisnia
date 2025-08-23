@@ -1,6 +1,7 @@
 import api from '@/lib/api';
 import type { Experiencia, ExperienciaSchema } from '@/types/experiencia';
 
+// Paginación genérica
 export type ApiPage<T> = {
   items: T[];
   page: number;
@@ -9,33 +10,39 @@ export type ApiPage<T> = {
   totalPages: number;
 };
 
-export async function getExperiencias(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
+// 🔹 Obtener todas las experiencias (trae solo los items)
+export async function getExperiencias(params?: { page?: number; pageSize?: number }) {
   const { data } = await api.get<ApiPage<Experiencia>>('/experiencias', { params });
-  return data.items;
+  return data.items; // 👈 solo regresamos el array
 }
 
-export async function getExperienciasPage(params?: { page?: number; pageSize?: number; includeInactive?: boolean }) {
+// 🔹 Obtener con paginación (por si necesitas el objeto completo)
+export async function getExperienciasPage(params?: { page?: number; pageSize?: number }) {
   const { data } = await api.get<ApiPage<Experiencia>>('/experiencias', { params });
-  return data;
+  return data; // devuelve { items, total, ... }
 }
 
+// 🔹 Contar experiencias (rápido para dashboard)
 export async function getExperienciasCount() {
-  const { data } = await api.get<ApiPage<Experiencia>>('/experiencias', { params: { page: 1, pageSize: 1 } });
+  const { data } = await api.get<ApiPage<Experiencia>>('/experiencias', {
+    params: { page: 1, pageSize: 1 },
+  });
   return data.total ?? 0;
 }
 
+// 🔹 Crear experiencia
 export async function createExperiencia(payload: ExperienciaSchema) {
-  const { data: res } = await api.post('/experiencias', { ...payload, activo: true });
-  // Adaptarse a una respuesta envuelta `{ data: experiencia }` o
-  // directamente el objeto de Experiencia.
-  return (res as any).data ?? res;
+  const { data } = await api.post<Experiencia>('/experiencias', payload);
+  return data;
 }
 
-export async function updateExperiencia(id: number | string, payload: ExperienciaSchema) {
-  const { data: res } = await api.put(`/experiencias/${id}`, payload);
-  return (res as any).data ?? res;
+// 🔹 Actualizar experiencia
+export async function updateExperiencia(id: number, payload: ExperienciaSchema) {
+  const { data } = await api.put<Experiencia>(`/experiencias/${id}`, payload);
+  return data;
 }
 
-export async function deleteExperiencia(id: number | string) {
-  await api.delete<void>(`/experiencias/${id}`);
+// 🔹 Eliminar experiencia
+export async function deleteExperiencia(id: number) {
+  await api.delete(`/experiencias/${id}`);
 }

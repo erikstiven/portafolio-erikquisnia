@@ -18,7 +18,7 @@ interface Props {
 
 function toDateInputValue(dateString?: string | null) {
   if (!dateString) return '';
-  return dateString.substring(0, 10);  // Formato de fecha correcto: 'YYYY-MM-DD'
+  return dateString.substring(0, 10); // siempre YYYY-MM-DD
 }
 
 export default function FormExperiencia({ initialData, onSuccess }: Props) {
@@ -34,14 +34,14 @@ export default function FormExperiencia({ initialData, onSuccess }: Props) {
     defaultValues: initialData
       ? {
           ...initialData,
-          fechaInicio: toDateInputValue(initialData.fechaInicio), // Asegúrate de que 'fechaInicio' esté en los valores predeterminados
+          fechaInicio: toDateInputValue(initialData.fechaInicio),
           fechaFin: toDateInputValue(initialData.fechaFin),
-          actualmente: initialData.actualmente ?? false,  // Valor predeterminado de `actualmente`
+          actualmente: initialData.actualmente ?? false,
         }
       : {
           puesto: '',
           empresa: '',
-          fechaInicio: '',  // Registrar 'fechaInicio'
+          fechaInicio: '',
           fechaFin: '',
           actualmente: false,
           descripcion: '',
@@ -52,7 +52,7 @@ export default function FormExperiencia({ initialData, onSuccess }: Props) {
     if (initialData) {
       reset({
         ...initialData,
-        fechaInicio: toDateInputValue(initialData.fechaInicio), // Asegúrate de actualizar 'fechaInicio'
+        fechaInicio: toDateInputValue(initialData.fechaInicio),
         fechaFin: toDateInputValue(initialData.fechaFin),
         actualmente: initialData.actualmente ?? false,
       });
@@ -61,9 +61,9 @@ export default function FormExperiencia({ initialData, onSuccess }: Props) {
 
   const actualmente = watch('actualmente');
   const fechaFin = watch('fechaFin');
-  const fechaInicio = watch('fechaInicio');  // Asegúrate de observar 'fechaInicio'
+  const fechaInicio = watch('fechaInicio');
 
-  // Validar fechas antes de enviar
+  // Validar fechas
   const validateDates = () => {
     if (fechaFin && fechaInicio && new Date(fechaFin) < new Date(fechaInicio)) {
       toast.error('La fecha de fin no puede ser anterior a la fecha de inicio');
@@ -72,22 +72,36 @@ export default function FormExperiencia({ initialData, onSuccess }: Props) {
     return true;
   };
 
-  // Cuando 'actualmente' está marcado, reiniciamos 'fechaFin'
+  // Resetear fecha fin si "actualmente" está activado
   useEffect(() => {
     if (actualmente) {
-      setValue('fechaFin', ''); // Reinicia la fechaFin si 'actualmente' es true
+      setValue('fechaFin', '');
     }
   }, [actualmente, setValue]);
 
   const onSubmit = async (data: ExperienciaSchema) => {
-    if (!validateDates()) return; // Si las fechas son inválidas, no enviamos los datos
+    if (!validateDates()) return;
+
+    // 🔹 Normalizamos y convertimos a snake_case para el backend
+    const payload = {
+      puesto: data.puesto,
+      empresa: data.empresa,
+      descripcion: data.descripcion,
+      actualmente: data.actualmente,
+      fecha_inicio: data.fechaInicio
+        ? new Date(data.fechaInicio).toISOString().split('T')[0]
+        : null,
+      fecha_fin: data.fechaFin
+        ? new Date(data.fechaFin).toISOString().split('T')[0]
+        : null,
+    };
 
     try {
       if (initialData?.id) {
-        await updateExperiencia(initialData.id, data);  // Asegúrate de enviar el objeto completo
+        await updateExperiencia(initialData.id, payload as any);
         toast.success('Experiencia actualizada');
       } else {
-        await createExperiencia(data); 
+        await createExperiencia(payload as any);
         toast.success('Experiencia creada');
         reset();
       }
@@ -134,7 +148,7 @@ export default function FormExperiencia({ initialData, onSuccess }: Props) {
           <label className="text-xs">Fecha de inicio</label>
           <Input
             type="date"
-            {...register('fechaInicio')}  // Asegúrate de que 'fechaInicio' esté registrado
+            {...register('fechaInicio')}
             className={errors.fechaInicio ? 'border-red-500' : ''}
           />
           {errors.fechaInicio && (
@@ -146,7 +160,7 @@ export default function FormExperiencia({ initialData, onSuccess }: Props) {
           <Input
             type="date"
             disabled={actualmente}
-            {...register('fechaFin')}  // Asegúrate de que 'fechaFin' esté registrado
+            {...register('fechaFin')}
             className={errors.fechaFin ? 'border-red-500' : ''}
           />
           {errors.fechaFin && (

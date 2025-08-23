@@ -20,12 +20,10 @@ export default function PageRedes() {
   const fetchRedes = async () => {
     setLoading(true);
     try {
-      const items = await getRedes();   // <- ya es RedSocial[]
+      const items = await getRedes(); // siempre array normalizado
       setRedes(items);
-
-
-
-    } catch {
+    } catch (err) {
+      console.error('Error al obtener redes:', err);
       toast.error('Error al obtener redes');
     } finally {
       setLoading(false);
@@ -33,11 +31,19 @@ export default function PageRedes() {
   };
 
   const handleDelete = async (id: number) => {
+    console.log('🗑️ Intentando eliminar red con id:', id);
     try {
       await deleteRed(id);
-      fetchRedes();
+
+      // 🔹 Elimina de inmediato en frontend (optimista)
+      setRedes((prev) => prev.filter((r) => r.id !== id));
+
       toast.success('Red eliminada');
-    } catch {
+
+      // 🔹 Luego sincroniza con el backend
+      await fetchRedes();
+    } catch (err) {
+      console.error('❌ Error al eliminar red:', err);
       toast.error('Error al eliminar');
     }
   };
@@ -63,19 +69,16 @@ export default function PageRedes() {
         </Button>
       </div>
 
-      {loading ? (
-        <div className="w-full flex justify-center items-center py-16">
-          <span className="animate-spin h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full"></span>
-          <span className="ml-2 text-blue-600">Cargando...</span>
-        </div>
-      ) : (
-        <TablaRedes
-          redes={redes}
-          loading={loading}      // ← ya controla skeletons
-          onEdit={(red) => { setRedToEdit(red); setOpen(true); }}
-          onDelete={handleDelete}
-        />
-      )}
+      {/* 👇 Tabla siempre visible, loading controla skeletons */}
+      <TablaRedes
+        redes={redes}
+        loading={loading}
+        onEdit={(red) => {
+          setRedToEdit(red);
+          setOpen(true);
+        }}
+        onDelete={handleDelete}
+      />
 
       <ModalRedSocial
         open={open}

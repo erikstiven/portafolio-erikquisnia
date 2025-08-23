@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 
 const base = process.env.NEXT_PUBLIC_API_URL
   ? process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/,'')
-  : 'http://localhost:3001';
+  : 'http://localhost:8000/api/v1';
 
 const api = axios.create({
   baseURL: base,

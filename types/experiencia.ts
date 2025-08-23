@@ -1,21 +1,20 @@
 import { z } from 'zod';
 
-// Esquema de validación para experiencia
+// Validación con Zod: asegura que lo que envías al backend tenga el formato correcto
 export const experienciaSchema = z.object({
   id: z.number().optional(),
   puesto: z.string().min(1, 'El puesto es obligatorio'),
-  empresa: z.string().min(1, 'El nombre de la empresa es obligatorio'),
+  empresa: z.string().min(1, 'La empresa es obligatoria'),
   descripcion: z.string().optional(),
   fechaInicio: z.string().min(1, 'La fecha de inicio es obligatoria'),
   fechaFin: z.string().optional(),
-  actualmente: z.boolean(),  // Se agrega la propiedad `actualmente`
+  actualmente: z.boolean(),
 });
 
-// Inferir el tipo de `ExperienciaSchema` a partir del esquema Zod
 export type ExperienciaSchema = z.infer<typeof experienciaSchema>;
 
-// El tipo final de `Experiencia` extiende `ExperienciaSchema` y agrega `activo` y `id`
+// Tipo que representa una experiencia completa traída desde la API
 export interface Experiencia extends ExperienciaSchema {
   id: number;
-  activo: boolean;
+  activo: boolean; // tu API lo usa para soft-delete o visibilidad
 }

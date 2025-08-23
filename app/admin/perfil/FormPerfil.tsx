@@ -157,7 +157,8 @@ export default function FormPerfil({ initialData, onSuccess }: Props) {
     };
     try {
       if (initialData?.id != null) {
-        await updatePerfil(payload);
+        // 👇 FIX: pasar el id al servicio para pegarle a /perfil/{id}
+        await updatePerfil(initialData.id, payload);
         toast.success('Perfil actualizado');
       } else {
         await createPerfil(payload);

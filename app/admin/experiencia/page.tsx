@@ -17,8 +17,8 @@ export default function PageExperiencia() {
   const fetchExperiencias = async () => {
     setLoading(true);
     try {
-      const items = await getExperiencias();  // Aquí obtenemos directamente las experiencias
-      setExperiencias(items);  // `items` es un array de `Experiencia`
+      const items = await getExperiencias();
+      setExperiencias(items);
     } catch {
       toast.error('Error al cargar experiencias');
     } finally {
@@ -27,7 +27,7 @@ export default function PageExperiencia() {
   };
 
   useEffect(() => {
-    fetchExperiencias();  // Cargar experiencias al montar el componente
+    fetchExperiencias();
   }, []);
 
   const handleNuevo = () => {
@@ -63,21 +63,16 @@ export default function PageExperiencia() {
         </Button>
       </div>
 
-      {loading ? (
-        <div className="w-full flex justify-center items-center py-16">
-          <span className="animate-spin h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full"></span>
-          <span className="ml-2 text-blue-600">Cargando...</span>
-        </div>
-      ) : (
-        <TablaExperiencia
-          experiencias={experiencias}
-          onEdit={handleEditar}
-          onDelete={handleEliminar}
-          total={experiencias.length} // o el total real si es paginado
-          onPageChange={(page) => console.log('Page changed:', page)} // manejar cambio de página
-          onPageSizeChange={(size) => console.log('Page size changed:', size)} // manejar cambio de tamaño de página
-        />
-      )}
+      {/* 👇 la tabla maneja los skeletons al recibir loading */}
+      <TablaExperiencia
+        experiencias={experiencias}
+        onEdit={handleEditar}
+        onDelete={handleEliminar}
+        total={experiencias.length}
+        loading={loading}
+        onPageChange={(page) => console.log('Page changed:', page)}
+        onPageSizeChange={(size) => console.log('Page size changed:', size)}
+      />
 
       <ModalExperiencia
         open={modalAbierto}

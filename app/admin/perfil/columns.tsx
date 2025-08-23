@@ -1,12 +1,21 @@
-// /app/(panel)/perfil/columns.tsx
-'use client';
+// columns.tsx
+import { ColumnaCrud } from '@/components/ui/TablaCrud';
+import { Perfil } from '@/types/perfil';
 
-import type { ColumnaCrud } from '@/components/ui/TablaCrud';
-import type { Perfil } from '@/types/perfil';
+function formateaFecha(fecha: string | null | undefined) {
+  if (!fecha) return '';
+  const d = new Date(fecha);
+  return isNaN(d.getTime()) ? '' : d.toLocaleString('es-EC');
+}
 
-/** Columnas para TablaCrud (mismo patrón que proyectos) */
 export const columnasPerfil: ColumnaCrud<Perfil>[] = [
-  { key: 'nombreCompleto', label: 'Nombre' },
-  { key: 'telefono', label: 'Teléfono' },
-  { key: 'tituloHero', label: 'Título (Hero)' },
+  { key: 'nombreCompleto', label: 'Nombre', className: 'max-w-[200px] truncate' },
+  { key: 'telefono', label: 'Teléfono', className: 'max-w-[160px] truncate' },
+  { key: 'tituloHero', label: 'Título', className: 'max-w-[160px] truncate' },
+  {
+    key: 'updatedAt',
+    label: 'Actualizado',
+    render: (row) => formateaFecha(row.updatedAt),
+    className: 'max-w-[160px] truncate',
+  },
 ];

@@ -1,4 +1,3 @@
-// /types/perfil.ts
 import { z } from 'zod';
 
 export interface Perfil {
@@ -12,7 +11,6 @@ export interface Perfil {
   descripcionUnoSobreMi: string;
   descripcionDosSobreMi: string;
 
-  // URLs persistidas en backend (Cloudinary o almacenamiento que uses)
   fotoHeroUrl: string | null;
   fotoSobreMiUrl: string | null;
   cvUrl: string | null;
@@ -21,7 +19,7 @@ export interface Perfil {
   updatedAt: string;
 }
 
-/** Formulario de texto (sin archivos). Los archivos se manejan fuera del schema. */
+/** Texto plano (los archivos van fuera del schema) */
 export const perfilSchema = z.object({
   nombreCompleto: z.string().min(1, 'Nombre completo es obligatorio'),
   inicialesLogo: z.string().min(1, 'Iniciales/logo es obligatorio'),
@@ -37,9 +35,14 @@ export const perfilSchema = z.object({
 });
 export type PerfilSchema = z.infer<typeof perfilSchema>;
 
-/** Valores que maneja el formulario con archivos */
+/** Valores que maneja el form (incluye archivos y flags de borrado) */
 export type PerfilFormValues = PerfilSchema & {
   fotoHeroFile?: File | null;
   fotoSobreMiFile?: File | null;
   cvFile?: File | null;
+
+  /** flags para borrar archivos existentes en el backend */
+  removeAvatar?: boolean;
+  removeFotoSobreMi?: boolean;
+  removeCv?: boolean;
 };

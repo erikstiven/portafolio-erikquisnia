@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import TablaCrud, { ColumnaCrud } from '@/components/ui/TablaCrud';
-import { columnasExperiencia } from './columns'; // Asegúrate que el path es correcto
+import TablaCrud from '@/components/ui/TablaCrud';
+import { columnasExperiencia } from './columns';
 import { Experiencia } from '@/types/experiencia';
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
   onEdit: (exp: Experiencia) => void;
   onDelete: (id: number) => void;
   total: number;
+  loading?: boolean; // ✅ añadimos loading opcional
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
 }
@@ -19,11 +20,12 @@ export default function TablaExperiencia({
   onEdit,
   onDelete,
   total,
+  loading = false, // ✅ valor por defecto
   onPageChange,
   onPageSizeChange,
 }: Props) {
-  const [page, setPage] = useState(1); // Página inicial
-  const [pageSize, setPageSize] = useState(10); // Tamaño de página inicial
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   return (
     <TablaCrud
@@ -35,13 +37,14 @@ export default function TablaExperiencia({
       page={page}
       pageSize={pageSize}
       total={total}
-      onPageChange={(page: number) => {
-        setPage(page);
-        onPageChange(page); // Llama la función de cambio de página desde los props
+      loading={loading} 
+      onPageChange={(p) => {
+        setPage(p);
+        onPageChange(p);
       }}
-      onPageSizeChange={(size: number) => {
-        setPageSize(size);
-        onPageSizeChange(size); // Llama la función de cambio de tamaño de página desde los props
+      onPageSizeChange={(s) => {
+        setPageSize(s);
+        onPageSizeChange(s);
       }}
     />
   );
