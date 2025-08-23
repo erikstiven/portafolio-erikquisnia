@@ -1,22 +1,21 @@
-// /lib/api.ts
+// lib/api.ts
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
+const base = process.env.NEXT_PUBLIC_API_URL
+  ? process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/,'')
+  : 'http://localhost:3001';
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL
-    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/,'')}/api/v1`
-    : 'http://localhost:3001/api/v1',
+  baseURL: base,
 });
 
-// /lib/api.ts (debajo del create)
 console.log('[api] baseURL =', api.defaults.baseURL);
 
-// Helper robusto para detectar FormData en browser/SSR
+// isFormData helper...
 const isFormData = (data: any) => {
   if (!data) return false;
-  // Browser
   if (typeof FormData !== 'undefined' && data instanceof FormData) return true;
-  // SSR/Node: constructor name o interfaz "parecida"
   const name = data?.constructor?.name;
   if (name === 'FormData') return true;
   if (typeof data.append === 'function' && typeof data.get === 'function') return true;
@@ -24,22 +23,11 @@ const isFormData = (data: any) => {
 };
 
 api.interceptors.request.use((config) => {
-  // 1) Token solo en cliente
   const token = typeof window !== 'undefined' ? useAuthStore.getState().token : null;
-
-  // Asegura objeto de headers
   if (!config.headers) config.headers = {};
+  if (token) (config.headers as any).Authorization = `Bearer ${token}`;
 
-  // 2) Auth header
-  if (token) {
-    (config.headers as any).Authorization = `Bearer ${token}`;
-  }
-
-  // 3) Content-Type:
-  //    - Si es FormData: no seteamos nada y eliminamos cualquier Content-Type previo
-  //    - Si NO es FormData: por defecto JSON (si no está ya seteado)
   if (isFormData(config.data)) {
-    // quita cualquier content-type previo para que axios ponga el boundary correcto
     delete (config.headers as any)['Content-Type'];
     delete (config.headers as any)['content-type'];
   } else {
