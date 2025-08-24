@@ -60,7 +60,7 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
     return Array.from(map.entries()).map(([id, nombre]) => ({ id, nombre }));
   }, [categorias, proyectosArr]);
 
-  // 3) Selección inicial: ⭐ si hay destacados
+  // 3) Selección inicial: si hay destacados
   useEffect(() => {
     if (!tocado && proyectosArr.length > 0) {
       if (proyectosArr.some((p) => p.destacado)) setCategoriaSeleccionada(-1);
@@ -130,7 +130,6 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
 
   const Empty = (
     <div className="py-8 text-center text-gray-500">
-      No hay proyectos para esta selección.
     </div>
   );
 
@@ -163,7 +162,7 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
               }`}
               aria-pressed={categoriaSeleccionada === -1}
             >
-              ⭐ Destacados ({destacadosCount})
+              Destacados ({destacadosCount})
             </button>
 
             {categoriasArr.map((cat) => (

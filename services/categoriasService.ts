@@ -31,3 +31,4 @@ export async function updateCategoria(id: number, nombre: string) {
 export async function deleteCategoria(id: number) {
   await api.delete(`/categorias/${id}`);
 }
+

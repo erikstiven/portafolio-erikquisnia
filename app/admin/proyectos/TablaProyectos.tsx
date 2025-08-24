@@ -1,48 +1,39 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getProyectos, deleteProyecto } from '@/services/proyectoService';
 import { columnasProyecto } from './columns';
-import TablaCrud from '@/components/ui/TablaCrud'; // Asegúrate de que TablaCrud esté correctamente importado
+import TablaCrud from '@/components/ui/TablaCrud';
 import { Proyecto } from '@/types/proyecto';
 
-interface PageProyectosProps {
-  // Propiedades esperadas para la tabla
+interface Props {
   proyectos: Proyecto[];
+  total: number;
   loading: boolean;
-  onEdit: (proyecto: Proyecto) => void;
-  onDelete: (id: number) => Promise<void>;
+  onEdit: (p: Proyecto) => void;
+  onDelete: (id: number) => void;
 }
 
-const TablaProyectos = ({ proyectos, loading, onEdit, onDelete }: PageProyectosProps) => {
-  const [page, setPage] = useState(0); // Página actual
-  const [pageSize, setPageSize] = useState(10); // Tamaño de página (items por página)
-  const [total, setTotal] = useState(0); // Total de elementos
-
-  // Función para obtener el id
-  const getId = (proyecto: Proyecto) => proyecto.id;
-
-  // Funciones para manejar la paginación
-  const onPageChange = (newPage: number) => setPage(newPage);
-  const onPageSizeChange = (newPageSize: number) => setPageSize(newPageSize);
+export default function TablaProyectos({
+  proyectos,
+  total,
+  loading,
+  onEdit,
+  onDelete,
+}: Props) {
+  const getId = (p: Proyecto) => p.id;
 
   return (
-    <div>
-      <TablaCrud
-        columns={columnasProyecto} // Asegúrate de que las columnas estén correctamente definidas
-        data={proyectos} // Los datos de los proyectos
-        getId={getId} // Obtener el ID de cada proyecto
-        page={page} // Página actual
-        pageSize={pageSize} // Tamaño de la página
-        total={total} // Total de proyectos
-        onPageChange={onPageChange} // Manejar el cambio de página
-        onPageSizeChange={onPageSizeChange} // Manejar el cambio de tamaño de página
-        loading={loading} // Indicar que está cargando
-        onEdit={onEdit} // Función de edición
-        onDelete={onDelete} // Función de eliminación
-      />
-    </div>
+    <TablaCrud
+      columns={columnasProyecto}
+      data={proyectos}
+      getId={getId}
+      page={1} // 👈 puedes conectar con paginación real después
+      pageSize={10}
+      total={total}
+      onPageChange={() => {}}
+      onPageSizeChange={() => {}}
+      loading={loading}
+      onEdit={onEdit}
+      onDelete={onDelete}
+    />
   );
-};
-
-export default TablaProyectos;
+}

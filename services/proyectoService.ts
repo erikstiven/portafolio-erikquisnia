@@ -1,91 +1,127 @@
 import api from '@/lib/api';
-import type { Proyecto, ProyectoSchema } from '@/types/proyecto';
+import type { ProyectoSchema, Proyecto } from '@/types/proyecto';
 
-/**
- * Sube un archivo a Cloudinary y devuelve la URL segura
- */
-async function uploadToCloudinary(file: File): Promise<string> {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
+/** 🔄 Convierte snake_case del backend → camelCase del frontend */
+function mapProyecto(apiProyecto: any): Proyecto {
+  return {
+    id: apiProyecto.id,
+    titulo: apiProyecto.titulo,
+    descripcion: apiProyecto.descripcion,
+    tecnologias: apiProyecto.tecnologias,
 
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', uploadPreset);
+    imagenUrl: apiProyecto.imagenUrl ?? apiProyecto.imagen_url ?? null,
+    imagenPublicId: apiProyecto.imagenPublicId ?? apiProyecto.imagen_public_id ?? null,
 
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
-    method: 'POST',
-    body: formData,
-  });
+    demoUrl: apiProyecto.demoUrl ?? apiProyecto.demo_url ?? null,
+    githubUrl: apiProyecto.githubUrl ?? apiProyecto.github_url ?? null,
 
-  if (!res.ok) {
-    throw new Error('Error al subir la imagen a Cloudinary');
-  }
+    destacado: !!apiProyecto.destacado,
+    nivel: apiProyecto.nivel ?? null,
 
-  const data = await res.json();
-  return data.secure_url as string;
+    categoriaId: apiProyecto.categoriaId ?? apiProyecto.categoria_id ?? null,
+    categoria: apiProyecto.categoria
+      ? { id: apiProyecto.categoria.id, nombre: apiProyecto.categoria.nombre }
+      : undefined,
+
+    createdAt: apiProyecto.createdAt ?? apiProyecto.created_at ?? null,
+    updatedAt: apiProyecto.updatedAt ?? apiProyecto.updated_at ?? null,
+  };
 }
 
 /**
- * Crear proyecto enviando archivo a Cloudinary
- */
-export async function createProyectoForm(data: ProyectoSchema, file: File): Promise<Proyecto> {
-  const imageUrl = await uploadToCloudinary(file);
-  const payload: ProyectoSchema = { ...data, imagenUrl: imageUrl };
-  // Al crear un proyecto, la API de Laravel devuelve el recurso envuelto
-  // en una clave `data` además de meta información. Por eso no tipamos
-  // el tipo de respuesta y extraemos `res` como `any`. Si la API
-  // devuelve directamente el objeto del proyecto, `res` ya será ese
-  // objeto. Si devuelve un objeto con `{ data: {...} }`, usamos ese
-  // campo. De lo contrario devolvemos `res` tal cual.
-  const { data: res } = await api.post('/proyectos', payload);
-  return (res as any).data ?? res;
-}
-
-/**
- * Crear proyecto solo con datos JSON
+ * Crear proyecto con JSON (sin imagen)
  */
 export async function createProyectoJson(data: ProyectoSchema): Promise<Proyecto> {
-  // Igual que en createProyectoForm, toleramos que la API devuelva
-  // `{ data: proyecto }` o el proyecto directamente.
-  const { data: res } = await api.post('/proyectos', data);
-  return (res as any).data ?? res;
+  const payload = {
+    titulo: data.titulo,
+    descripcion: data.descripcion,
+    tecnologias: data.tecnologias,
+    categoria_id: data.categoriaId,
+    destacado: data.destacado,
+    nivel: data.nivel,
+    demo_url: data.demoUrl,
+    github_url: data.githubUrl,
+  };
+
+  const res = await api.post('/proyectos', payload);
+  return mapProyecto(res.data);
 }
 
 /**
- * Actualizar proyecto enviando archivo a Cloudinary
+ * Crear proyecto con FormData (con imagen)
  */
-export async function updateProyectoForm(id: number, data: ProyectoSchema, file: File): Promise<Proyecto> {
-  const imageUrl = await uploadToCloudinary(file);
-  const payload: ProyectoSchema = { ...data, imagenUrl: imageUrl };
-  // El backend puede envolver la respuesta en `{ data: proyecto }`.
-  const { data: res } = await api.put(`/proyectos/${id}`, payload);
-  return (res as any).data ?? res;
+export async function createProyectoForm(data: ProyectoSchema, file: File): Promise<Proyecto> {
+  const formData = new FormData();
+  formData.append('titulo', data.titulo);
+  formData.append('descripcion', data.descripcion);
+  formData.append('tecnologias', data.tecnologias);
+  formData.append('categoria_id', String(data.categoriaId));
+  formData.append('destacado', data.destacado ? '1' : '0');
+  if (data.nivel) formData.append('nivel', data.nivel);
+  if (data.demoUrl) formData.append('demo_url', data.demoUrl);
+  if (data.githubUrl) formData.append('github_url', data.githubUrl);
+  formData.append('imagen', file);
+
+  const res = await api.post('/proyectos', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return mapProyecto(res.data);
 }
 
 /**
- * Actualizar proyecto solo con datos JSON
+ * Actualizar proyecto con JSON (sin imagen nueva)
  */
 export async function updateProyectoJson(id: number, data: ProyectoSchema): Promise<Proyecto> {
-  // Maneja tanto respuestas con `{ data: proyecto }` como objetos planos
-  const { data: res } = await api.put(`/proyectos/${id}`, data);
-  return (res as any).data ?? res;
+  const payload = {
+    titulo: data.titulo,
+    descripcion: data.descripcion,
+    tecnologias: data.tecnologias,
+    categoria_id: data.categoriaId,
+    destacado: data.destacado,
+    nivel: data.nivel,
+    demo_url: data.demoUrl,
+    github_url: data.githubUrl,
+    imagen_url: data.imagenUrl, // 👈 conserva imagen existente si no se cambia
+  };
+
+  const res = await api.patch(`/proyectos/${id}`, payload);
+  return mapProyecto(res.data);
 }
 
 /**
- * Listar proyectos (soporta array plano o {items:[]})
+ * Actualizar proyecto con FormData (con imagen nueva → POST + _method=PATCH)
  */
-export async function getProyectos(): Promise<Proyecto[]> {
-  // En el backend Laravel, el listado de proyectos devuelve un objeto
-  // con una propiedad `data` (y opcionalmente `meta`). Nuestro
-  // frontend anterior aceptaba también `{ items: [] }` o un array
-  // plano. Por ello, comprobamos los diferentes formatos y extraemos
-  // el arreglo adecuado. Si ninguna opción aplica, devolvemos un
-  // arreglo vacío.
-  const { data: res } = await api.get('/proyectos');
-  if (Array.isArray(res)) return res;
-  if (Array.isArray((res as any).data)) return (res as any).data;
-  if (Array.isArray((res as any).items)) return (res as any).items;
-  return [];
+export async function updateProyectoForm(id: number, data: ProyectoSchema, file: File): Promise<Proyecto> {
+  const formData = new FormData();
+  formData.append('titulo', data.titulo);
+  formData.append('descripcion', data.descripcion);
+  formData.append('tecnologias', data.tecnologias);
+  formData.append('categoria_id', String(data.categoriaId));
+  formData.append('destacado', data.destacado ? '1' : '0');
+  if (data.nivel) formData.append('nivel', data.nivel);
+  if (data.demoUrl) formData.append('demo_url', data.demoUrl);
+  if (data.githubUrl) formData.append('github_url', data.githubUrl);
+
+  // 👇 Importante para Laravel: forzar POST con _method=PATCH
+  formData.append('imagen', file);
+  formData.append('_method', 'PATCH');
+
+  const res = await api.post(`/proyectos/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return mapProyecto(res.data);
+}
+
+/**
+ * Obtener proyectos (lista paginada)
+ */
+export async function getProyectos(): Promise<{ items: Proyecto[]; total: number }> {
+  const res = await api.get<{ data: any[]; meta: { total: number } }>('/proyectos');
+
+  return {
+    items: res.data.data.map(mapProyecto),
+    total: res.data.meta.total,
+  };
 }
 
 /**

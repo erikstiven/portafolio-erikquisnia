@@ -33,7 +33,7 @@ export default function SeccionExperiencia({ experiencias }: Props) {
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <h2 className="text-4xl font-bold mb-10">Experiencia Profesional</h2>
         <div className="relative flex flex-col gap-12">
-          <div className="absolute left-7 top-0 bottom-0 w-1 bg-gray-200 z-0 rounded-full" />
+          <div className="absolute left-7 top-0 bottom-0 w-1 bg-purple-400 z-0 rounded-full" />
 
           {experiencias.map((exp, i) => (
             <div key={exp.id} className="flex items-start relative z-10">
@@ -56,7 +56,7 @@ export default function SeccionExperiencia({ experiencias }: Props) {
                   </svg>
                 </div>
                 {i !== experiencias.length - 1 && (
-                  <div className="w-1 flex-1 bg-gray-200 my-1" />
+                  <div className="w-1 flex-1 bg-gray-900 my-1" />
                 )}
               </div>
 

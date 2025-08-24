@@ -8,8 +8,8 @@ type Perfil = {
   descripcionUnoSobreMi?: string | null;
   descripcionDosSobreMi?: string | null;
   fotoSobreMiUrl?: string | null;
-  cvUrl?: string | null;
-  cvDownloadUrl?: string | null;
+  cvUrl?: string | null;          // se mantiene por si quieres mostrar el link
+  cvDownloadUrl?: string | null;  // opcional si tu API lo devuelve
 };
 
 export default function SeccionSobreMiSimple() {
@@ -30,51 +30,54 @@ export default function SeccionSobreMiSimple() {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const handleDownloadCV = async () => {
-    if (!perfil?.cvUrl) return;
-
     setDownloading(true);
     try {
-      // Crear nombre del archivo
-      const nombreArchivo = `CV_${perfil.nombreCompleto?.replace(/\s+/g, '_') || 'Erik_Quisnia'}.pdf`;
+      // 🔍 Debug: Ver qué datos tenemos
+      console.log('Datos del perfil:', perfil);
+      console.log('CV URL:', perfil?.cvUrl);
+      
+      // Verificar si hay CV disponible
+      if (!perfil?.cvUrl) {
+        console.log('❌ No hay cvUrl disponible');
+        alert('No hay CV disponible para descargar');
+        return;
+      }
 
-      // Descargar el archivo como blob
-      const response = await fetch(perfil.cvUrl);
-      if (!response.ok) throw new Error('Error al obtener el archivo');
+      console.log('✅ Intentando descargar desde:', perfil.cvUrl);
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      // Crear enlace y simular click
+      // Usar directamente la URL (o tu endpoint de descarga)
+      const nombreArchivo = `CV_${perfil?.nombreCompleto?.replace(/\s+/g, '_') || 'Usuario'}.pdf`;
       const link = document.createElement('a');
-      link.href = url;
+      link.href = perfil.cvUrl;
       link.download = nombreArchivo;
+      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
-
-      // Limpiar
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }, 100);
-
+      document.body.removeChild(link);
+      
+      console.log('✅ Descarga iniciada');
+      
     } catch (error) {
-      console.error('Error al descargar CV:', error);
-      // Fallback: abrir en nueva pestaña
-      if (perfil.cvUrl) {
-        window.open(perfil.cvUrl, '_blank');
-      }
+      console.error('❌ Error al descargar CV:', error);
+      alert('Error al descargar el CV. Por favor, inténtalo de nuevo.');
     } finally {
-      setDownloading(false);
+      // Pequeña espera para que la animación sea visible aunque sea rápido
+      setTimeout(() => setDownloading(false), 400);
     }
   };
 
   if (loading) {
     return (
-      <section id="sobremi" className="pt-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10">
+      <section
+        id="sobremi"
+        className="pt-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10"
+      >
         <div className="container mx-auto px-4">
           <div className="animate-pulse flex flex-col md:flex-row items-center gap-8">
             <div className="w-full md:w-1/2 space-y-4">
@@ -90,7 +93,10 @@ export default function SeccionSobreMiSimple() {
   }
 
   return (
-    <section id="sobremi" className="t-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10">
+    <section
+      id="sobremi"
+      className="t-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10"
+    >
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
           {/* Contenido de texto */}
@@ -113,38 +119,68 @@ export default function SeccionSobreMiSimple() {
               </p>
             )}
 
+            {/* Solo mostrar botón si hay CV disponible */}
             {perfil?.cvUrl && (
               <button
                 onClick={handleDownloadCV}
                 disabled={downloading}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg shadow hover:shadow-md transition"
+                aria-busy={downloading ? 'true' : 'false'}
+                className={
+                  `flex items-center gap-3 px-6 py-3 text-white rounded-lg shadow transition ` +
+                  `transform active:scale-95 active:translate-y-0.5 ` +
+                  `${downloading ? 'bg-gradient-to-r from-purple-400 to-pink-400 cursor-wait' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-md'}` +
+                  ` disabled:opacity-60 disabled:cursor-not-allowed`
+                }
+                title={downloading ? 'Descargando...' : 'Descargar CV'}
               >
-                <FaDownload />
-                {downloading ? 'Descargando...' : 'Descargar CV'}
+                {/* Spinner cuando descarga */}
+                {downloading ? (
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                ) : (
+                  <FaDownload className="h-4 w-4" aria-hidden="true" />
+                )}
+
+                <span className="font-medium">
+                  {downloading ? 'Descargando...' : 'Descargar CV'}
+                </span>
               </button>
             )}
           </div>
 
-      {/* Opción 2: Ajustar posición con object-position */}
-<div className="w-full md:w-auto order-1 md:order-2 flex justify-center">
-  <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-white shadow-xl overflow-hidden">
-    {perfil?.fotoSobreMiUrl ? (
-      <img
-        src={perfil.fotoSobreMiUrl}
-        alt={`${perfil.nombreCompleto || 'Foto de perfil'}`}
-        className="w-full h-full object-cover object-top" // Enfoca en la parte superior
-        onError={(e) => {
-          (e.target as HTMLImageElement).style.display = 'none';
-          (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-        }}
-      />
-    ) : null}
-    <div className={`absolute inset-0 bg-gray-200 flex items-center justify-center ${perfil?.fotoSobreMiUrl ? 'hidden' : ''}`}>
-      <span className="text-gray-500">Foto de perfil</span>
-    </div>
-  </div>
-</div>
-
+          {/* Foto de perfil */}
+          <div className="w-full md:w-auto order-1 md:order-2 flex justify-center">
+            <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-white shadow-xl overflow-hidden">
+              {perfil?.fotoSobreMiUrl ? (
+                <img
+                  src={perfil.fotoSobreMiUrl}
+                  alt={`${perfil.nombreCompleto || 'Foto de perfil'}`}
+                  className="w-full h-full object-cover object-top"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove(
+                      'hidden'
+                    );
+                  }}
+                />
+              ) : null}
+              <div
+                className={`absolute inset-0 bg-gray-200 flex items-center justify-center ${
+                  perfil?.fotoSobreMiUrl ? 'hidden' : ''
+                }`}
+              >
+                <span className="text-gray-500">Foto de perfil</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

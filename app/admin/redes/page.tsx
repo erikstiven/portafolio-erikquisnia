@@ -40,7 +40,7 @@ export default function PageRedes() {
 
       toast.success('Red eliminada');
 
-      // 🔹 Luego sincroniza con el backend
+      // 🔹 Luego sincroniza con backend
       await fetchRedes();
     } catch (err) {
       console.error('❌ Error al eliminar red:', err);
@@ -69,7 +69,7 @@ export default function PageRedes() {
         </Button>
       </div>
 
-      {/* 👇 Tabla siempre visible, loading controla skeletons */}
+      {/* 👇 La tabla siempre visible, skeletons manejados por loading */}
       <TablaRedes
         redes={redes}
         loading={loading}

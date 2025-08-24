@@ -1,7 +1,7 @@
 import api from '@/lib/api';
 import type { RedSocial, RedSocialSchema } from '@/types/redSocial';
 
-// 🔹 Normaliza array (soporta { items:[] }, { data:[] } o [])
+// 🔹 Normaliza array (soporta { items:[] }, { data:[] }, { data:{items:[]} } o [])
 function normalizeArray(res: any): RedSocial[] {
   if (Array.isArray(res)) return res;
   if (res?.items) return res.items;
@@ -10,26 +10,26 @@ function normalizeArray(res: any): RedSocial[] {
   return [];
 }
 
-// 🔹 Listar
+// 🔹 Listar redes
 export async function getRedes(params?: { page?: number; pageSize?: number }) {
   const { data } = await api.get('/redes', { params });
   return normalizeArray(data);
 }
 
-// 🔹 Crear
+// 🔹 Crear red social
 export async function createRed(payload: RedSocialSchema) {
   const { data: res } = await api.post('/redes', payload);
   return (res as any).data ?? res;
 }
 
-// 🔹 Actualizar
+// 🔹 Actualizar red social
 export async function updateRed(id: number, payload: RedSocialSchema) {
   const { data: res } = await api.put(`/redes/${id}`, payload);
   return (res as any).data ?? res;
 }
 
-// 🔹 Eliminar
+// 🔹 Eliminar red social
 export async function deleteRed(id: number) {
   await api.delete(`/redes/${id}`);
-  return true; // 👈 devolvemos algo para poder manejar estado en frontend
+  return true;
 }

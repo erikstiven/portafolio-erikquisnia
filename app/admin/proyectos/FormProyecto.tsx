@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
 
@@ -10,16 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { proyectoSchema, ProyectoSchema, NIVEL_VALUES, Nivel } from '@/types/proyecto';
-import { Categoria } from '@/types/categoria'; // crea este tipo si no existe
+import { Categoria } from '@/types/categoria';
 import { getCategorias } from '@/services/categoriasService';
 import {
   createProyectoForm,
   createProyectoJson,
   updateProyectoForm,
-  updateProyectoJson
+  updateProyectoJson,
 } from '@/services/proyectoService';
 import { toast } from 'sonner';
-
 
 interface Props {
   initialData?: Partial<ProyectoSchema> & { id?: number };
@@ -67,17 +66,28 @@ export default function FormProyecto({ initialData, onSuccess }: Props) {
     load();
   }, []);
 
-  // Manejar cambio de imagen: guardar File y mostrar preview
+  // 👇 sincronizar preview cuando recibes initialData (modo edición)
+  useEffect(() => {
+    if (initialData?.imagenUrl) {
+      setPreview(initialData.imagenUrl);
+      setPortada(null);
+    } else {
+      setPreview(null);
+      setPortada(null);
+    }
+  }, [initialData]);
+
+  // Manejar cambio de imagen
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPortada(file);
     setPreview(url);
-    setValue('imagenUrl', null, { shouldDirty: true }); // eliminar URL si se sube archivo
+    setValue('imagenUrl', null, { shouldDirty: true }); 
   };
 
-  // Eliminar la imagen actual
+  // Eliminar imagen
   const removeImage = () => {
     setPortada(null);
     setPreview(null);
@@ -85,8 +95,8 @@ export default function FormProyecto({ initialData, onSuccess }: Props) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Enviar formulario: JSON si no hay archivo, FormData si hay archivo
-  const onSubmit = async (data: ProyectoSchema) => {
+  // Enviar formulario
+  const onSubmit: SubmitHandler<ProyectoSchema> = async (data) => {
     try {
       if (initialData?.id != null) {
         // EDITAR
@@ -173,11 +183,10 @@ export default function FormProyecto({ initialData, onSuccess }: Props) {
             checked={watch('destacado')}
             onChange={(e) => setValue('destacado', e.target.checked)}
           />
-          <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+          <div className="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-black after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
         </label>
         <span className="text-sm font-medium text-gray-900">Destacado</span>
       </div>
-
 
       {/* Nivel */}
       <div>

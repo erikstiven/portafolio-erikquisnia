@@ -110,7 +110,7 @@ export default function Footer() {
           {/* Col 2: enlaces internos — centrado en móvil */}
           <nav className="order-3 md:order-none">
             <ul className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 md:gap-y-4">
-                <li>
+              <li>
                 <Link href="#inicio" className="hover:text-white transition text-base">
                   Inicio
                 </Link>
@@ -135,7 +135,7 @@ export default function Footer() {
                   Tecnologías
                 </Link>
               </li>
-            
+
               <li>
                 <Link href="#contacto" className="hover:text-white transition text-base">
                   Contacto
@@ -147,27 +147,27 @@ export default function Footer() {
           <div className="flex flex-wrap items-center justify-start md:justify-end gap-4 sm:gap-5">
             {loading
               ? Array.from({ length: 6 }).map((_, i) => (
-                  <span
-                    key={i}
-                    className="h-10 w-10 lg:h-12 lg:w-12 rounded-full bg-white/5 animate-pulse border border-white/10"
-                  />
-                ))
+                <span
+                  key={i}
+                  className="h-10 w-10 lg:h-12 lg:w-12 rounded-full bg-white/5 animate-pulse border border-white/10"
+                />
+              ))
               : redes.map((r) => {
-                  const Icon = pickIconFrom(r);
-                  return (
-                    <a
-                      key={r.id}
-                      href={r.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={r.nombre ?? 'red social'}
-                      title={r.nombre ?? 'red social'}
-                      className="group inline-flex h-10 w-10 lg:h-12 lg:w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10 hover:text-white transition"
-                    >
-                      <Icon className="text-[20px] lg:text-[24px]" />
-                    </a>
-                  );
-                })}
+                const Icon = pickIconFrom(r);
+                return (
+                  <a
+                    key={r.id}
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={r.nombre ?? 'red social'}
+                    title={r.nombre ?? 'red social'}
+                    className="group inline-flex h-10 w-10 lg:h-12 lg:w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10 hover:text-white transition"
+                  >
+                    <Icon className="text-[20px] lg:text-[24px]" />
+                  </a>
+                );
+              })}
           </div>
         </div>
         {/* BOTTOM: línea y meta — stack en móvil, separados en desktop */}
@@ -175,6 +175,9 @@ export default function Footer() {
           <div className="flex flex-col lg:items-center items-start  justify-between gap-4">
             <p className="text-sm sm:text-base text-gray-400">
               Construido con Next.js, TypeScript y TailwindCSS.
+            </p>
+            <p className="text-sm sm:text-base text-gray-400">
+              Realizado por Erik Quisnia            
             </p>
           </div>
         </div>

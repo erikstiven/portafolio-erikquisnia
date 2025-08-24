@@ -1,80 +1,97 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Proyecto } from '@/types/proyecto';
+import {
+  getProyectos,
+  deleteProyecto,
+} from '@/services/proyectoService';
 import TablaProyectos from './TablaProyectos';
-import { getProyectos, deleteProyecto } from '@/services/proyectoService';
 import ModalProyecto from './ModalProyecto';
-import type { Proyecto } from '@/types/proyecto';
 import { Button } from '@/components/ui/button';
+import { FaPlus } from 'react-icons/fa';
 import { toast } from 'sonner';
-import { useAuthStore } from '@/store/authStore';
 
 export default function PageProyectos() {
-  const token = useAuthStore((state) => state.token); // ajusta según tu auth
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [proyectoEditando, setProyectoEditando] = useState<Proyecto | null>(null);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [proyectoToEdit, setProyectoToEdit] = useState<Proyecto | null>(null);
 
   const fetchProyectos = async () => {
     setLoading(true);
     try {
-      const items = await getProyectos();
-      setProyectos(items);
-    } catch {
+      const res = await getProyectos();
+
+      // Normalizamos respuesta: puede ser array o {items,total}
+      if (Array.isArray(res)) {
+        setProyectos(res);
+        setTotal(res.length);
+      } else {
+        setProyectos(res.items ?? []);
+        setTotal(res.total ?? 0);
+      }
+    } catch (err) {
+      console.error(err);
       toast.error('Error al cargar proyectos');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    // sólo carga si hay token/usuario
-    if (token) fetchProyectos();
-  }, [token]);
-
-  const handleNuevo = () => {
-    setProyectoEditando(null);
-    setModalAbierto(true);
-  };
-
-  const handleEditar = (proyecto: Proyecto) => {
-    setProyectoEditando(proyecto);
-    setModalAbierto(true);
-  };
-
-  const handleEliminar = async (id: number) => {
+  const handleDelete = async (id: number) => {
     try {
       await deleteProyecto(id);
+      setProyectos((prev) => prev.filter((p) => p.id !== id));
+      setTotal((prev) => prev - 1);
       toast.success('Proyecto eliminado');
-      fetchProyectos();
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast.error('Error al eliminar');
     }
   };
 
+  useEffect(() => {
+    fetchProyectos();
+  }, []);
+
   return (
     <div className="p-4 sm:p-6 space-y-6 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <h1 className="text-2xl font-bold">Proyectos</h1>
         <Button
-          onClick={handleNuevo}
+          onClick={() => {
+            setProyectoToEdit(null);
+            setOpen(true);
+          }}
           className="w-full sm:w-auto bg-black text-white text-base font-semibold shadow rounded"
           disabled={loading}
         >
-          + Nuevo
+          <FaPlus className="mr-2" />
+          Nuevo
         </Button>
       </div>
 
-      <div>
-        <TablaProyectos proyectos={proyectos} loading={loading} onEdit={handleEditar} onDelete={handleEliminar} />
-      </div>
+      {/* Tabla */}
+      <TablaProyectos
+        proyectos={proyectos}
+        total={total}
+        loading={loading}
+        onEdit={(p) => {
+          setProyectoToEdit(p);
+          setOpen(true);
+        }}
+        onDelete={handleDelete}
+      />
 
+      {/* Modal */}
       <ModalProyecto
-        open={modalAbierto}
-        onClose={() => setModalAbierto(false)}
+        open={open}
+        onClose={() => setOpen(false)}
         fetchProyectos={fetchProyectos}
-        proyectoToEdit={proyectoEditando}
+        proyectoToEdit={proyectoToEdit}
       />
     </div>
   );

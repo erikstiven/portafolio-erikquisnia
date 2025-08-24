@@ -1,83 +1,78 @@
+// /app/admin/perfil/page.tsx  (fragmento/archivo completo según tu estructura)
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-
+import React, { useEffect, useState } from 'react';
 import TablaPerfil from './TablaPerfil';
 import ModalPerfil from './ModalPerfil';
-import type { Perfil } from '@/types/perfil';
 import { getPerfiles, deletePerfil } from '@/services/perfilService';
-import { useAuthStore } from '@/store/authStore';
+import type { Perfil } from '@/types/perfil';
+import { toast } from 'sonner';
 
-export default function PagePerfil() {
-  const token = useAuthStore((s) => s.token);
-
+export default function PageAdminPerfiles() {
   const [perfiles, setPerfiles] = useState<Perfil[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [perfilEdit, setPerfilEdit] = useState<Perfil | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [perfilToEdit, setPerfilToEdit] = useState<Perfil | undefined>(undefined);
 
   const fetchPerfiles = async () => {
     setLoading(true);
     try {
-      const items = await getPerfiles();
-      setPerfiles(items);
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Error al cargar perfil');
+      const res = await getPerfiles();
+      setPerfiles(res ?? []);
+    } catch (err) {
+      console.error('Error cargando perfiles', err);
+      setPerfiles([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { if (token) fetchPerfiles(); }, [token]);
+  useEffect(() => {
+    fetchPerfiles();
+  }, []);
 
-  const handleNuevo = () => {
-    setPerfilEdit(null);
-    setModalOpen(true);
-  };
-
-  const handleEditar = (perfil: Perfil) => {
-    setPerfilEdit(perfil);      // objeto completo con id
-    setModalOpen(true);
-  };
-
-  const handleEliminar = async (perfil: Perfil) => {
+  const handleDelete = async () => {
     try {
-      await deletePerfil(perfil.id);
-      toast.success('Perfil eliminado');
-      fetchPerfiles();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Error al eliminar perfil');
+      await deletePerfil(); // <-- sin id (singleton)
+      toast.success('Perfil eliminado correctamente');
+      await fetchPerfiles();
+      // opcional: cerrar modal si estaba abierto
+      setOpenModal(false);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || 'Error al eliminar perfil');
     }
   };
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold">Perfil</h1>
-        <Button
-          onClick={handleNuevo}
-          className="w-full sm:w-auto bg-black text-white text-base font-semibold shadow rounded"
-          disabled={loading}
-        >
-          + Nuevo
-        </Button>
+    <div className="p-8">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h2 className="mt-4 text-2xl font-semibold">Perfiles</h2>
+        </div>
+
+        <div className="flex flex-col items-end gap-4">
+          <button
+            onClick={() => { setPerfilToEdit(undefined); setOpenModal(true); }}
+            className="bg-black text-white px-4 py-2 rounded-md shadow-md"
+          >
+            + Nueva
+          </button>
+        </div>
       </div>
 
       <TablaPerfil
         perfiles={perfiles}
         loading={loading}
-        onEdit={handleEditar}
-        onDelete={handleEliminar}
+        onEdit={(p) => { setPerfilToEdit(p); setOpenModal(true); }}
+        onDelete={handleDelete} // <-- le pasamos handleDelete sin id
       />
 
       <ModalPerfil
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        open={openModal}
+        onClose={() => setOpenModal(false)}
         fetchPerfiles={fetchPerfiles}
-        perfilToEdit={perfilEdit || undefined}
+        perfilToEdit={perfilToEdit}
       />
     </div>
   );

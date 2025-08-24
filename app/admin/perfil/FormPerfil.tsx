@@ -1,4 +1,4 @@
-// /app/(panel)/perfil/FormPerfil.tsx
+// /app/admin/perfil/FormPerfil.tsx
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -22,7 +22,6 @@ interface Props {
 const isLocalUrl = (u?: string | null) =>
   !!u && (u.startsWith('blob:') || u.startsWith('data:'));
 
-// ===== Helpers para nombre del PDF con elipsis =====
 const NAME_MAX = 28;
 
 const fileNameFromUrl = (url?: string | null): string | null => {
@@ -37,35 +36,30 @@ const fileNameFromUrl = (url?: string | null): string | null => {
   }
 };
 
-/** Elipsis en medio: ej. "guia_tablero_…_final.pdf" */
 const ellipsizeMiddle = (name?: string | null, max = NAME_MAX): string | null => {
   if (!name) return null;
   if (name.length <= max) return name;
   const extMatch = name.match(/(\.[a-z0-9]{1,6})$/i);
   const ext = extMatch ? extMatch[1] : '';
   const base = ext ? name.slice(0, -ext.length) : name;
-  const keep = Math.max(3, max - (ext.length + 1)); // 1 por “…” intermedio
+  const keep = Math.max(3, max - (ext.length + 1));
   const head = Math.ceil(keep * 0.6);
   const tail = keep - head;
   return `${base.slice(0, head)}…${base.slice(-tail)}${ext}`;
 };
 
 export default function FormPerfil({ initialData, onSuccess }: Props) {
-  // refs de inputs file
   const fotoHeroRef = useRef<HTMLInputElement>(null);
   const fotoSobreMiRef = useRef<HTMLInputElement>(null);
   const cvRef = useRef<HTMLInputElement>(null);
 
-  // previews imágenes
   const [previewHero, setPreviewHero] = useState<string | null>(initialData?.fotoHeroUrl ?? null);
   const [previewSobreMi, setPreviewSobreMi] = useState<string | null>(initialData?.fotoSobreMiUrl ?? null);
 
-  // estado CV
   const [cvExistingUrl, setCvExistingUrl] = useState<string | null>(initialData?.cvUrl ?? null);
-  const [cvName, setCvName] = useState<string | null>(null); // nombre del nuevo seleccionado
+  const [cvName, setCvName] = useState<string | null>(null);
   const [cvFile, setCvFile] = useState<File | null>(null);
 
-  // archivos seleccionados
   const [fotoHeroFile, setFotoHeroFile] = useState<File | null>(null);
   const [fotoSobreMiFile, setFotoSobreMiFile] = useState<File | null>(null);
 
@@ -92,33 +86,39 @@ export default function FormPerfil({ initialData, onSuccess }: Props) {
     },
   });
 
-  // Handlers imágenes
   const onHeroChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]; if (!f) return;
+    const f = e.target.files?.[0];
+    if (!f) return;
     setFotoHeroFile(f);
     const url = URL.createObjectURL(f);
-    setPreviewHero(prev => { if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev); return url; });
+    setPreviewHero(prev => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return url;
+    });
     setValue('fotoHeroUrl', null, { shouldDirty: true });
   };
 
   const onSobreMiChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]; if (!f) return;
+    const f = e.target.files?.[0];
+    if (!f) return;
     setFotoSobreMiFile(f);
     const url = URL.createObjectURL(f);
-    setPreviewSobreMi(prev => { if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev); return url; });
+    setPreviewSobreMi(prev => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return url;
+    });
     setValue('fotoSobreMiUrl', null, { shouldDirty: true });
   };
 
-  // Handler CV: sólo nombre/flags (sin vista previa)
   const onCvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]; if (!f) return;
+    const f = e.target.files?.[0];
+    if (!f) return;
     setCvFile(f);
     setCvName(f.name);
-    setCvExistingUrl(null);  // ocultar el existente al elegir uno nuevo
+    setCvExistingUrl(null);
     setValue('cvUrl', null, { shouldDirty: true });
   };
 
-  // Limpiar imágenes (para post-crear)
   const clearHero = () => {
     setFotoHeroFile(null);
     if (previewHero?.startsWith('blob:')) URL.revokeObjectURL(previewHero);
@@ -139,7 +139,6 @@ export default function FormPerfil({ initialData, onSuccess }: Props) {
     if (cvRef.current) cvRef.current.value = '';
   };
 
-  // Limpia blobs al desmontar (sólo imágenes)
   useEffect(() => {
     return () => {
       if (previewHero?.startsWith('blob:')) URL.revokeObjectURL(previewHero);
@@ -147,7 +146,6 @@ export default function FormPerfil({ initialData, onSuccess }: Props) {
     };
   }, [previewHero, previewSobreMi]);
 
-  // Envío
   const onSubmit = async (data: PerfilSchema) => {
     const payload: PerfilFormValues = {
       ...data,
@@ -155,15 +153,19 @@ export default function FormPerfil({ initialData, onSuccess }: Props) {
       fotoSobreMiFile,
       cvFile,
     };
+
     try {
-      if (initialData?.id != null) {
-        // 👇 FIX: pasar el id al servicio para pegarle a /perfil/{id}
-        await updatePerfil(initialData.id, payload);
+      if (initialData) {
+        // backend es singleton: actualizamos enviando payload (service hace POST /perfil + _method=PUT)
+        await updatePerfil(payload);
         toast.success('Perfil actualizado');
       } else {
         await createPerfil(payload);
         toast.success('Perfil creado');
-        reset(); clearHero(); clearSobreMi(); clearCvSelection();
+        reset();
+        clearHero();
+        clearSobreMi();
+        clearCvSelection();
       }
       onSuccess();
     } catch (err: any) {
@@ -171,35 +173,38 @@ export default function FormPerfil({ initialData, onSuccess }: Props) {
     }
   };
 
-  // nombres mostrados (con elipsis en medio)
   const existingNameFull = fileNameFromUrl(cvExistingUrl);
   const existingNameShort = ellipsizeMiddle(existingNameFull);
   const cvNameShort = ellipsizeMiddle(cvName);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {/* Campos */}
+      {/* Campos básicos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Nombre completo</label>
           <Input {...register('nombreCompleto')} />
           {errors.nombreCompleto && <p className="text-red-500 text-sm">{errors.nombreCompleto.message}</p>}
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Iniciales / Logo</label>
           <Input {...register('inicialesLogo')} />
           {errors.inicialesLogo && <p className="text-red-500 text-sm">{errors.inicialesLogo.message}</p>}
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Teléfono</label>
           <Input {...register('telefono')} />
           {errors.telefono && <p className="text-red-500 text-sm">{errors.telefono.message}</p>}
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Título (Hero)</label>
           <Input {...register('tituloHero')} />
           {errors.tituloHero && <p className="text-red-500 text-sm">{errors.tituloHero.message}</p>}
         </div>
+
         <div className="sm:col-span-2">
           <label className="block text-sm font-medium mb-1">Perfil técnico (Hero)</label>
           <Input {...register('perfilTecnicoHero')} />
@@ -269,23 +274,17 @@ export default function FormPerfil({ initialData, onSuccess }: Props) {
           <input type="file" accept="image/*" ref={fotoSobreMiRef} className="hidden" onChange={onSobreMiChange} />
         </div>
 
-        {/* CV (icono + nombre con elipsis; sin preview) */}
+        {/* CV */}
         <div>
           <label className="block text-sm font-medium mb-1">CV (PDF)</label>
-
-          {/* 1) Nuevo seleccionado */}
           {cvFile && cvName && (
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2 border rounded px-2 py-1 min-w-0 max-w-full sm:max-w-[260px]">
-                {/* Icono */}
                 <svg width="18" height="18" viewBox="0 0 24 24" className="shrink-0">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="currentColor" opacity=".15"/>
                   <path d="M14 2v6h6" fill="currentColor"/>
                 </svg>
-                <span
-                  className="text-sm overflow-hidden text-ellipsis whitespace-nowrap block"
-                  title={cvName}
-                >
+                <span className="text-sm overflow-hidden text-ellipsis whitespace-nowrap block" title={cvName}>
                   {cvNameShort}
                 </span>
               </div>
@@ -295,29 +294,23 @@ export default function FormPerfil({ initialData, onSuccess }: Props) {
             </div>
           )}
 
-          {/* 2) Existe en BD */}
           {!cvFile && cvExistingUrl && (
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2 border rounded px-2 py-1 min-w-0 max-w-full sm:max-w-[260px]">
                 <svg width="18" height="18" viewBox="0 0 24 24" className="shrink-0">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="currentColor" opacity=".15"/>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z" fill="currentColor" opacity=".15"/>
                   <path d="M14 2v6h6" fill="currentColor"/>
                 </svg>
-                <span
-                  className="text-sm overflow-hidden text-ellipsis whitespace-nowrap block"
-                  title={existingNameFull ?? 'CV.pdf'}
-                >
+                <span className="text-sm overflow-hidden text-ellipsis whitespace-nowrap block" title={existingNameFull ?? 'CV.pdf'}>
                   {existingNameShort ?? 'CV.pdf'}
                 </span>
               </div>
-
               <div className="ml-auto">
                 <Button type="button" size="sm" onClick={() => cvRef.current?.click()}>Reemplazar</Button>
               </div>
             </div>
           )}
 
-          {/* 3) No hay nada */}
           {!cvFile && !cvExistingUrl && (
             <Button type="button" onClick={() => cvRef.current?.click()}>Subir</Button>
           )}
@@ -327,7 +320,7 @@ export default function FormPerfil({ initialData, onSuccess }: Props) {
       </div>
 
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Guardando...' : initialData?.id ? 'Actualizar' : 'Guardar'}
+        {isSubmitting ? 'Guardando...' : initialData ? 'Actualizar' : 'Guardar'}
       </Button>
     </form>
   );

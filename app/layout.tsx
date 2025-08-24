@@ -1,25 +1,22 @@
-'use client';
 import './globals.css';
-import { usePathname } from 'next/navigation';
-import Navbar from '@/components/Navbar';
-import { Toaster } from 'sonner';
+import type { Metadata } from 'next';
+import ClientShell from './ClientShell'; // wrapper cliente
+
+export const metadata: Metadata = {
+  title: 'Mi aplicación',
+  description: 'Descripción de mi app',
+  icons: {
+    icon: '/logo.png',          // pon tu favicon en /public/favicon.ico
+    // apple: '/apple-touch-icon.png',
+    // shortcut: '/favicon-32x32.png',
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const hideOn = ['/admin', '/login'];
-  const showNavbar = !hideOn.some((p) => pathname.startsWith(p));
-
   return (
     <html lang="es">
       <body className="bg-white text-slate-900">
-        <Toaster position="top-right" richColors />
-
-        {showNavbar && <Navbar />}
-
-        {/* El padding-top por el navbar déjalo aquí, no en <body> */}
-        <main className={showNavbar ? 'pt-20' : ''}>
-          {children}
-        </main>
+        <ClientShell>{children}</ClientShell>
       </body>
     </html>
   );

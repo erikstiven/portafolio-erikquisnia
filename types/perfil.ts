@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export interface Perfil {
-  id: number;
+  id?: number; // opcional, solo si el backend igual lo devuelve, pero no lo usamos en rutas
   nombreCompleto: string;
   inicialesLogo: string;
   telefono: string;
@@ -18,6 +18,7 @@ export interface Perfil {
   createdAt: string;
   updatedAt: string;
 }
+
 
 /** Texto plano (los archivos van fuera del schema) */
 export const perfilSchema = z.object({
