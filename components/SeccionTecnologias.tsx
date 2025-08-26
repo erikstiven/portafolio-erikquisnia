@@ -1,5 +1,17 @@
 'use client';
 
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartOptions,
+} from 'chart.js';
+
 type Item = { name: string; slug: string };
 type Card = { title: string; topColor: string; items: Item[] };
 
@@ -7,7 +19,7 @@ type Card = { title: string; topColor: string; items: Item[] };
 const DIRECT_OVERRIDES: Record<string, string> = {
   //cc3
   css3:
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYWV_njdUAZhI966A6j3PnpfjE9XnZqy-Mkw&s',
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYWV_njdUAZhI966A6j3PnpfjE9XnZqy-Mkw&s',
   microsoftazure:
     'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Microsoft_Azure.svg/2048px-Microsoft_Azure.svg.png',
   visualstudiocode:
@@ -16,17 +28,13 @@ const DIRECT_OVERRIDES: Record<string, string> = {
     'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Adobe_Illustrator_CC_icon.svg/2101px-Adobe_Illustrator_CC_icon.svg.png',
   adobephotoshop:
     'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Adobe_Photoshop_CC_icon.svg/1051px-Adobe_Photoshop_CC_icon.svg.png',
-  // Si dejaste CSS3 local porque te fallaba, mantén este override:
-  // css3: '/icons/css3.svg',
 };
 
-/** Genera lista de fuentes en orden de prioridad */
 const sources = (slug: string) => {
-  // Caso especial: CapCut con tu PNG primero
   if (slug === 'capcut') {
     return [
-      'https://freepnglogo.com/images/all_img/1691746000capcut-logo%20(2).png', // tu enlace
-      '/icons/video-editor.svg',                                                // opcional: fallback local neutral
+      'https://freepnglogo.com/images/all_img/1691746000capcut-logo%20(2).png',
+      '/icons/video-editor.svg',
       'https://cdn.simpleicons.org/capcut',
       'https://cdn.jsdelivr.net/npm/simple-icons/icons/capcut.svg',
       'https://unpkg.com/simple-icons@latest/icons/capcut.svg',
@@ -100,6 +108,39 @@ function TechCard({
   );
 }
 
+/* ---------------- Chart.js setup ---------------- */
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+/* Chart options */
+const chartOptions: ChartOptions<'bar'> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    title: {
+      display: true,
+      text: 'Tecnologías por categoría',
+      font: { size: 14 },
+    },
+    tooltip: {
+      callbacks: {
+        label: (ctx) => `${ctx.parsed.y} tecnologías`,
+      },
+    },
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+    },
+    y: {
+      beginAtZero: true,
+      ticks: { stepSize: 1 },
+    },
+  },
+};
+
+/* ------------------------------------------------ */
+
 export default function SeccionTecnologias() {
   // Slugs correctos
   const FRONTEND: Item[] = [
@@ -136,21 +177,47 @@ export default function SeccionTecnologias() {
     { name: 'Visual Studio Code', slug: 'visualstudiocode' }, // override directo
     { name: 'NPM', slug: 'npm' },
     { name: 'Figma', slug: 'figma' },
-    { name: 'Adobe Illustrator', slug: 'adobeillustrator' },  // override directo
-    { name: 'Adobe Photoshop', slug: 'adobephotoshop' },      // override directo
-    { name: 'CapCut', slug: 'capcut' },                       // PNG primero
+    { name: 'Adobe Illustrator', slug: 'adobeillustrator' }, // override directo
+    { name: 'Adobe Photoshop', slug: 'adobephotoshop' }, // override directo
+    { name: 'CapCut', slug: 'capcut' }, // PNG primero
   ];
+
+  // Datos para el chart (cantidad por categoría)
+  const labels = ['Frontend', 'Backend', 'Learning', 'Tools'];
+  const values = [FRONTEND.length, BACKEND.length, LEARNING.length, TOOLS.length];
+
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: 'Tecnologías',
+        data: values,
+        backgroundColor: ['#60A5FA', '#34D399', '#FBBF24', '#A78BFA'],
+        borderRadius: 6,
+        barThickness: 20,
+      },
+    ],
+  };
 
   return (
     <section id="tecnologias" className="pt-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
-        <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
-          Tecnologías y Herramientas
-          </h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Tecnologías y Herramientas</h2>
         <p className="mt-3 text-slate-600 max-w-[72ch]">
           En mi viaje por el desarrollo web, he cultivado experiencia en diferentes capas del stack.
           Estas son las tecnologías que uso a diario y herramientas con las que trabajo.
         </p>
+
+        {/* ---- Chart card (responsive) ---- */}
+        <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-gray-100">Resumen</h3>
+            <span className="text-sm text-slate-500">{`Total: ${values.reduce((a,b)=>a+b,0)}`}</span>
+          </div>
+          <div style={{ height: 220 }}>
+            <Bar options={chartOptions} data={data} />
+          </div>
+        </div>
 
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           <TechCard title="Frontend" topColor="#3F4B5E" items={FRONTEND} />
