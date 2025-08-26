@@ -16,7 +16,7 @@ const DIRECT_OVERRIDES: Record<string, string> = {
     'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Adobe_Illustrator_CC_icon.svg/2101px-Adobe_Illustrator_CC_icon.svg.png',
   adobephotoshop:
     'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Adobe_Photoshop_CC_icon.svg/1051px-Adobe_Photoshop_CC_icon.svg.png',
-  csharp: 'https://cdn.jsdelivr.net/npm/simple-icons@14.11.1/icons/csharp.svg',
+  csharp: 'https://e7.pngegg.com/pngimages/520/669/png-clipart-c-logo-c-programming-language-computer-icons-computer-programming-programming-miscellaneous-blue.png',
 
 
   // Si dejaste CSS3 local porque te fallaba, mantén este override:
