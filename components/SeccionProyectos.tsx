@@ -137,7 +137,7 @@ export default function SeccionProyectos({ proyectos, categorias }: Props) {
     <section id="proyectos" className="pt-10 md:pt-14 scroll-mt-28 border-t border-slate-200 mt-10">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <h2 className="text-5xl font-bold mb-2 text-left md:text-left">Proyectos</h2>
-        <h2 className="text-5xl font-bold mb-2 text-left md:text-left"></h2>
+        <h2 className="text-5xl font-bold mb-4 text-left md:text-left"></h2>
 
         {/* Filtros */}
         <div className="flex justify-center">
